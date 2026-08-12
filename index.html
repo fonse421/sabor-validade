@@ -4,602 +4,3673 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#DDF5E6">
-<title>Sabor&Validade — Beta IA</title>
+<title>Sabor&Validade — Beta 3 IA</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
+
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style>
-* { -webkit-tap-highlight-color: transparent; }
-body { font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-.screen { display:none; animation:fade .2s ease; }
-.screen.active { display:block; }
-@keyframes fade { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
-.modal-bg { background:rgba(15,23,18,.72); backdrop-filter:blur(7px); }
-.scan-line { animation:scan 2s infinite ease-in-out; }
-@keyframes scan { 0%{top:20%} 50%{top:78%} 100%{top:20%} }
-#reader video { width:100%!important;height:100%!important;object-fit:cover!important; }
-#reader { border:0!important; }
-#reader__dashboard { display:none!important; }
-.nav-item.active { color:#3A9B5C; }
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
+.screen {
+  display: none;
+  animation: fade .2s ease;
+}
+
+.screen.active {
+  display: block;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.modal-bg {
+  background: rgba(15, 23, 18, .72);
+  backdrop-filter: blur(7px);
+}
+
+.scan-line {
+  animation: scan 2s infinite ease-in-out;
+}
+
+@keyframes scan {
+  0% {
+    top: 20%;
+  }
+
+  50% {
+    top: 78%;
+  }
+
+  100% {
+    top: 20%;
+  }
+}
+
+#reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+#reader {
+  border: 0 !important;
+}
+
+#reader__dashboard {
+  display: none !important;
+}
+
+.nav-item.active {
+  color: #3A9B5C;
+}
+
+.ai-pulse {
+  animation: pulseAI 1.5s infinite;
+}
+
+@keyframes pulseAI {
+  0%, 100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: .45;
+  }
+}
+
+.progress-bar {
+  transition: width .25s ease;
+}
 </style>
 </head>
 
 <body class="bg-[#F7FAF8] text-slate-800">
+
 <div class="max-w-md mx-auto min-h-screen relative">
 
 <header class="sticky top-0 z-30 bg-[#F7FAF8]/95 backdrop-blur border-b border-slate-100">
-<div class="px-5 py-4 flex items-center justify-between">
-<div class="flex items-center gap-2">
-<div class="w-10 h-10 rounded-2xl bg-green-100 flex items-center justify-center text-xl">🌿</div>
-<div>
-<h1 class="font-extrabold text-lg">Sabor<span class="text-green-600">&</span>Validade</h1>
-<p class="text-[11px] text-slate-400">Beta com IA na câmera</p>
-</div>
-</div>
-<button onclick="showScreen('profile')" class="w-10 h-10 rounded-full bg-white border border-slate-200">👤</button>
-</div>
+  <div class="px-5 py-4 flex items-center justify-between">
+
+    <div class="flex items-center gap-2">
+
+      <div class="w-10 h-10 rounded-2xl bg-green-100 flex items-center justify-center text-xl">
+        🌿
+      </div>
+
+      <div>
+        <h1 class="font-extrabold text-lg">
+          Sabor<span class="text-green-600">&</span>Validade
+        </h1>
+
+        <p class="text-[11px] text-slate-400">
+          Beta 3 • IA na câmera
+        </p>
+      </div>
+
+    </div>
+
+    <button
+      onclick="showScreen('profile')"
+      class="w-10 h-10 rounded-full bg-white border border-slate-200">
+      👤
+    </button>
+
+  </div>
 </header>
+
 
 <main class="px-5 pb-28">
 
+<!-- ================= HOME ================= -->
+
 <section id="home" class="screen active pt-5">
-<p class="text-sm text-slate-400">Sua despensa</p>
-<h2 class="text-2xl font-extrabold mt-1">O que temos hoje?</h2>
 
-<button onclick="openScanner()" class="w-full mt-5 rounded-3xl bg-green-600 text-white p-5 shadow-lg flex items-center gap-4 active:scale-[.98]">
-<div class="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center text-3xl">📷</div>
-<div class="text-left flex-1">
-<p class="font-bold text-lg">Escanear com IA</p>
-<p class="text-sm text-white/75">Aponte a câmera para o alimento</p>
-</div>
-<span class="text-2xl">›</span>
-</button>
+  <p class="text-sm text-slate-400">
+    Sua despensa
+  </p>
 
-<button onclick="openManualAdd()" class="w-full mt-3 rounded-2xl bg-white border border-slate-200 p-4 flex items-center gap-3 active:scale-[.98]">
-<div class="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center text-xl">✎</div>
-<div class="text-left flex-1">
-<p class="font-bold text-sm">Cadastrar manualmente</p>
-<p class="text-xs text-slate-400">Adicione um alimento e a validade sem usar a câmera</p>
-</div>
-<span class="text-xl text-slate-300">›</span>
-</button>
+  <h2 class="text-2xl font-extrabold mt-1">
+    O que temos hoje?
+  </h2>
 
-<div class="grid grid-cols-3 gap-3 mt-5">
-<div class="bg-white rounded-2xl p-4 border border-slate-100"><p id="totalItems" class="text-2xl font-extrabold">0</p><p class="text-xs text-slate-400">Itens</p></div>
-<div class="bg-white rounded-2xl p-4 border border-slate-100"><p id="expiringItems" class="text-2xl font-extrabold text-orange-500">0</p><p class="text-xs text-slate-400">Vencem logo</p></div>
-<div class="bg-white rounded-2xl p-4 border border-slate-100"><p id="expiredItems" class="text-2xl font-extrabold text-red-500">0</p><p class="text-xs text-slate-400">Vencidos</p></div>
-</div>
 
-<button onclick="openRecipes()" class="w-full mt-5 bg-gradient-to-r from-orange-400 to-amber-400 text-white rounded-2xl p-4 flex items-center gap-3">
-<span class="text-2xl">🍳</span>
-<div class="text-left flex-1"><p class="font-bold">O que cozinhar hoje?</p><p class="text-xs text-white/80">Receitas usando o que você já tem</p></div>
-→
-</button>
+  <button
+    onclick="openScanner()"
+    class="w-full mt-5 rounded-3xl bg-green-600 text-white p-5 shadow-lg flex items-center gap-4 active:scale-[.98]">
 
-<div class="flex items-center justify-between mt-7 mb-3">
-<h3 class="font-extrabold text-lg">Minha Despensa</h3>
-<button onclick="showScreen('pantry')" class="text-sm font-semibold text-green-600">Ver todos</button>
-</div>
-<div id="homeFoodList" class="space-y-3"></div>
+    <div class="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center text-3xl">
+      📷
+    </div>
+
+    <div class="text-left flex-1">
+
+      <p class="font-bold text-lg">
+        Escanear com IA
+      </p>
+
+      <p class="text-sm text-white/75">
+        Foto + texto + busca inteligente
+      </p>
+
+    </div>
+
+    <span class="text-2xl">
+      ›
+    </span>
+
+  </button>
+
+
+  <button
+    onclick="openManualAdd()"
+    class="w-full mt-3 rounded-2xl bg-white border border-slate-200 p-4 flex items-center gap-3 active:scale-[.98]">
+
+    <div class="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center text-xl">
+      ✎
+    </div>
+
+    <div class="text-left flex-1">
+
+      <p class="font-bold text-sm">
+        Cadastrar manualmente
+      </p>
+
+      <p class="text-xs text-slate-400">
+        Adicione um alimento e a validade
+      </p>
+
+    </div>
+
+    <span class="text-xl text-slate-300">
+      ›
+    </span>
+
+  </button>
+
+
+  <div class="grid grid-cols-3 gap-3 mt-5">
+
+    <div class="bg-white rounded-2xl p-4 border border-slate-100">
+      <p id="totalItems" class="text-2xl font-extrabold">0</p>
+      <p class="text-xs text-slate-400">Itens</p>
+    </div>
+
+    <div class="bg-white rounded-2xl p-4 border border-slate-100">
+      <p id="expiringItems" class="text-2xl font-extrabold text-orange-500">0</p>
+      <p class="text-xs text-slate-400">Vencem logo</p>
+    </div>
+
+    <div class="bg-white rounded-2xl p-4 border border-slate-100">
+      <p id="expiredItems" class="text-2xl font-extrabold text-red-500">0</p>
+      <p class="text-xs text-slate-400">Vencidos</p>
+    </div>
+
+  </div>
+
+
+  <button
+    onclick="openRecipes()"
+    class="w-full mt-5 bg-gradient-to-r from-orange-400 to-amber-400 text-white rounded-2xl p-4 flex items-center gap-3">
+
+    <span class="text-2xl">
+      🍳
+    </span>
+
+    <div class="text-left flex-1">
+
+      <p class="font-bold">
+        O que cozinhar hoje?
+      </p>
+
+      <p class="text-xs text-white/80">
+        Receitas usando o que você já tem
+      </p>
+
+    </div>
+
+    →
+  </button>
+
+
+  <div class="flex items-center justify-between mt-7 mb-3">
+
+    <h3 class="font-extrabold text-lg">
+      Minha Despensa
+    </h3>
+
+    <button
+      onclick="showScreen('pantry')"
+      class="text-sm font-semibold text-green-600">
+      Ver todos
+    </button>
+
+  </div>
+
+
+  <div id="homeFoodList" class="space-y-3"></div>
+
 </section>
+
+
+<!-- ================= PANTRY ================= -->
 
 <section id="pantry" class="screen pt-5">
-<div class="flex justify-between items-end mb-5 gap-2">
-<div><p class="text-sm text-slate-400">Organização</p><h2 class="text-2xl font-extrabold">Minha Despensa</h2></div>
-<div class="flex gap-2 shrink-0">
-<button onclick="openManualAdd()" class="bg-slate-100 text-slate-700 px-3 py-2 rounded-xl text-sm font-bold">✎ Manual</button>
-<button onclick="openScanner()" class="bg-green-100 text-green-700 px-3 py-2 rounded-xl text-sm font-bold">📷 Escanear</button>
-</div>
-</div>
-<div id="pantryFoodList" class="space-y-3"></div>
+
+  <div class="flex justify-between items-end mb-5 gap-2">
+
+    <div>
+
+      <p class="text-sm text-slate-400">
+        Organização
+      </p>
+
+      <h2 class="text-2xl font-extrabold">
+        Minha Despensa
+      </h2>
+
+    </div>
+
+
+    <div class="flex gap-2 shrink-0">
+
+      <button
+        onclick="openManualAdd()"
+        class="bg-slate-100 text-slate-700 px-3 py-2 rounded-xl text-sm font-bold">
+        ✎ Manual
+      </button>
+
+      <button
+        onclick="openScanner()"
+        class="bg-green-100 text-green-700 px-3 py-2 rounded-xl text-sm font-bold">
+        📷 Escanear
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <div id="pantryFoodList" class="space-y-3"></div>
+
 </section>
+
+
+<!-- ================= RECIPES ================= -->
 
 <section id="recipes" class="screen pt-5">
-<p class="text-sm text-slate-400">Sugestões</p>
-<h2 class="text-2xl font-extrabold mt-1">Receitas 🍳</h2>
-<div class="bg-green-100 rounded-3xl p-5 mt-5">
-<p class="text-sm text-green-700 font-semibold">Receitas inteligentes</p>
-<h3 class="font-extrabold text-xl mt-1">Use primeiro o que vence antes.</h3>
-</div>
-<div id="recipeList" class="space-y-4 mt-5"></div>
+
+  <p class="text-sm text-slate-400">
+    Sugestões
+  </p>
+
+  <h2 class="text-2xl font-extrabold mt-1">
+    Receitas 🍳
+  </h2>
+
+
+  <div class="bg-green-100 rounded-3xl p-5 mt-5">
+
+    <p class="text-sm text-green-700 font-semibold">
+      Receitas inteligentes
+    </p>
+
+    <h3 class="font-extrabold text-xl mt-1">
+      Use primeiro o que vence antes.
+    </h3>
+
+  </div>
+
+
+  <div id="recipeList" class="space-y-4 mt-5"></div>
+
 </section>
 
+
+<!-- ================= PROFILE ================= -->
+
 <section id="profile" class="screen pt-5">
-<div class="text-center py-6">
-<div class="w-24 h-24 mx-auto rounded-full bg-green-100 flex items-center justify-center text-5xl">👤</div>
-<h2 class="text-2xl font-extrabold mt-4">Meu Perfil</h2>
-<p class="text-sm text-slate-400">Sabor&Validade Beta</p>
-</div>
-<div class="bg-white rounded-2xl border border-slate-100 p-5">
-<p class="font-bold">Sobre o scanner IA</p>
-<p class="text-sm text-slate-500 mt-2 leading-relaxed">
-Esta Beta usa MobileNet/TensorFlow.js diretamente no navegador. A previsão é uma pista,
-não uma garantia. Para alimentos embalados, o código de barras é usado quando disponível.
-Se a IA errar, você sempre pode corrigir o nome ao cadastrar.
-</p>
-</div>
+
+  <div class="text-center py-6">
+
+    <div class="w-24 h-24 mx-auto rounded-full bg-green-100 flex items-center justify-center text-5xl">
+      👤
+    </div>
+
+    <h2 class="text-2xl font-extrabold mt-4">
+      Meu Perfil
+    </h2>
+
+    <p class="text-sm text-slate-400">
+      Sabor&Validade Beta 3
+    </p>
+
+  </div>
+
+
+  <div class="bg-white rounded-2xl border border-slate-100 p-5">
+
+    <p class="font-bold">
+      Sobre o scanner IA
+    </p>
+
+    <p class="text-sm text-slate-500 mt-2 leading-relaxed">
+
+      A Beta 3 combina visão computacional,
+      OCR, busca de produtos e código de barras.
+
+      Para produtos embalados, o sistema tenta
+      ler o nome da embalagem e procurar
+      correspondências no banco de alimentos.
+
+      O resultado é uma sugestão e deve ser
+      conferido antes de salvar.
+
+    </p>
+
+  </div>
+
+
+  <div class="bg-blue-50 rounded-2xl p-5 mt-4">
+
+    <p class="font-bold text-blue-800">
+      🧠 Como a IA funciona
+    </p>
+
+    <p class="text-sm text-blue-700 mt-2 leading-relaxed">
+
+      1. A câmera captura a imagem.<br>
+      2. MobileNet procura objetos conhecidos.<br>
+      3. OCR tenta ler textos da embalagem.<br>
+      4. O sistema pesquisa produtos semelhantes.<br>
+      5. Os resultados são combinados.
+
+    </p>
+
+  </div>
+
 </section>
 
 </main>
 
+
+<!-- ================= NAV ================= -->
+
 <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 bg-white/95 backdrop-blur border-t border-slate-100">
-<div class="grid grid-cols-4 h-[72px]">
-<button onclick="showScreen('home')" data-screen="home" class="nav-item active flex flex-col items-center justify-center gap-1"><span class="text-xl">🏠</span><span class="text-[10px] font-semibold">Início</span></button>
-<button onclick="openScanner()" class="flex flex-col items-center justify-center gap-1"><span class="w-11 h-11 -mt-5 rounded-full bg-green-600 text-white shadow-lg flex items-center justify-center text-xl border-4 border-[#F7FAF8]">📷</span><span class="text-[10px] font-semibold text-slate-500">Escanear</span></button>
-<button onclick="openRecipes()" data-screen="recipes" class="nav-item flex flex-col items-center justify-center gap-1"><span class="text-xl">🍳</span><span class="text-[10px] font-semibold">Receitas</span></button>
-<button onclick="showScreen('profile')" data-screen="profile" class="nav-item flex flex-col items-center justify-center gap-1"><span class="text-xl">👤</span><span class="text-[10px] font-semibold">Perfil</span></button>
-</div>
+
+  <div class="grid grid-cols-4 h-[72px]">
+
+    <button
+      onclick="showScreen('home')"
+      data-screen="home"
+      class="nav-item active flex flex-col items-center justify-center gap-1">
+
+      <span class="text-xl">
+        🏠
+      </span>
+
+      <span class="text-[10px] font-semibold">
+        Início
+      </span>
+
+    </button>
+
+
+    <button
+      onclick="openScanner()"
+      class="flex flex-col items-center justify-center gap-1">
+
+      <span class="w-11 h-11 -mt-5 rounded-full bg-green-600 text-white shadow-lg flex items-center justify-center text-xl border-4 border-[#F7FAF8]">
+        📷
+      </span>
+
+      <span class="text-[10px] font-semibold text-slate-500">
+        Escanear
+      </span>
+
+    </button>
+
+
+    <button
+      onclick="openRecipes()"
+      data-screen="recipes"
+      class="nav-item flex flex-col items-center justify-center gap-1">
+
+      <span class="text-xl">
+        🍳
+      </span>
+
+      <span class="text-[10px] font-semibold">
+        Receitas
+      </span>
+
+    </button>
+
+
+    <button
+      onclick="showScreen('profile')"
+      data-screen="profile"
+      class="nav-item flex flex-col items-center justify-center gap-1">
+
+      <span class="text-xl">
+        👤
+      </span>
+
+      <span class="text-[10px] font-semibold">
+        Perfil
+      </span>
+
+    </button>
+
+  </div>
+
 </nav>
+
 </div>
 
-<!-- SCANNER -->
-<div id="scannerModal" class="hidden fixed inset-0 z-50 modal-bg flex items-end justify-center">
-<div class="bg-white w-full max-w-md rounded-t-[32px] overflow-hidden max-h-[96vh] overflow-y-auto">
-<div class="p-4 flex items-center justify-between">
-<div><p class="text-xs text-slate-400">Scanner Beta</p><h3 class="font-extrabold text-xl">Identificar alimento</h3></div>
-<button onclick="closeScanner()" class="w-10 h-10 rounded-full bg-slate-100">✕</button>
-</div>
 
-<div class="relative h-72 bg-black overflow-hidden">
-  <video id="aiCamera" class="absolute inset-0 w-full h-full object-cover" autoplay muted playsinline></video>
-  <canvas id="aiCanvas" class="hidden"></canvas>
-  <div id="reader" class="absolute inset-0"></div>
-  <div class="absolute inset-0 pointer-events-none">
-    <div class="absolute inset-[16%] border-2 border-white rounded-2xl"></div>
-    <div class="scan-line absolute left-[16%] right-[16%] h-0.5 bg-green-400"></div>
-    <div class="absolute bottom-4 left-0 right-0 text-center text-white text-xs">
-      <span class="bg-black/50 px-3 py-2 rounded-full">IA: centralize o alimento no quadro</span>
-    </div>
-  </div>
-</div>
+<!-- ========================================================= -->
+<!-- ======================= SCANNER ========================== -->
+<!-- ========================================================= -->
 
-<div class="px-5 pt-4">
-  <div id="aiStatus" class="bg-slate-50 rounded-2xl p-4 text-sm">
-    <p class="font-bold">Carregando IA...</p>
-    <p class="text-xs text-slate-400 mt-1">O modelo será baixado na primeira utilização.</p>
-  </div>
-</div>
+<div
+  id="scannerModal"
+  class="hidden fixed inset-0 z-50 modal-bg flex items-end justify-center">
 
-<div class="p-5">
-  <div id="predictionBox" class="hidden bg-green-50 rounded-2xl p-4">
-    <div class="flex items-center gap-3">
-      <div id="predictionIcon" class="text-4xl">🥫</div>
-      <div class="flex-1">
-        <p class="text-xs text-slate-400">IA sugere</p>
-        <p id="predictionName" class="font-extrabold text-lg">Alimento</p>
-        <p id="predictionConfidence" class="text-xs text-green-700 mt-1">Confiança: --</p>
+  <div class="bg-white w-full max-w-md rounded-t-[32px] overflow-hidden max-h-[96vh] overflow-y-auto">
+
+
+    <div class="p-4 flex items-center justify-between">
+
+      <div>
+
+        <p class="text-xs text-slate-400">
+          Scanner Beta 3
+        </p>
+
+        <h3 class="font-extrabold text-xl">
+          Identificar alimento
+        </h3>
+
       </div>
+
+
+      <button
+        onclick="closeScanner()"
+        class="w-10 h-10 rounded-full bg-slate-100">
+        ✕
+      </button>
+
     </div>
-    <button onclick="usePrediction()" class="w-full mt-4 bg-green-600 text-white py-3 rounded-xl font-bold">✓ Usar identificação</button>
-    <button onclick="captureAndClassify()" class="w-full mt-2 text-xs text-slate-400 py-1">Não é isso? Analisar de novo</button>
+
+
+    <!-- CAMERA -->
+
+    <div class="relative h-72 bg-black overflow-hidden">
+
+      <video
+        id="aiCamera"
+        class="absolute inset-0 w-full h-full object-cover"
+        autoplay
+        muted
+        playsinline>
+      </video>
+
+
+      <canvas
+        id="aiCanvas"
+        class="hidden">
+      </canvas>
+
+
+      <div
+        id="reader"
+        class="absolute inset-0">
+      </div>
+
+
+      <div class="absolute inset-0 pointer-events-none">
+
+        <div class="absolute inset-[16%] border-2 border-white rounded-2xl"></div>
+
+        <div class="scan-line absolute left-[16%] right-[16%] h-0.5 bg-green-400"></div>
+
+
+        <div class="absolute bottom-4 left-0 right-0 text-center text-white text-xs">
+
+          <span class="bg-black/50 px-3 py-2 rounded-full">
+
+            Centralize o alimento no quadro
+
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- STATUS -->
+
+    <div class="px-5 pt-4">
+
+      <div
+        id="aiStatus"
+        class="bg-slate-50 rounded-2xl p-4 text-sm">
+
+        <div class="flex gap-3 items-center">
+
+          <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center">
+            ⏳
+          </div>
+
+          <div>
+
+            <p class="font-bold">
+              Inicializando IA...
+            </p>
+
+            <p class="text-xs text-slate-400 mt-1">
+              Aguarde alguns segundos.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ANALYSIS PROGRESS -->
+
+    <div
+      id="analysisProgress"
+      class="hidden px-5 pt-3">
+
+      <div class="bg-slate-100 rounded-full h-2 overflow-hidden">
+
+        <div
+          id="analysisProgressBar"
+          class="progress-bar bg-green-500 h-full rounded-full"
+          style="width:0%">
+        </div>
+
+      </div>
+
+      <p
+        id="analysisProgressText"
+        class="text-[11px] text-slate-400 mt-2 text-center">
+        Preparando análise...
+      </p>
+
+    </div>
+
+
+    <!-- RESULT -->
+
+    <div class="p-5">
+
+      <div
+        id="predictionBox"
+        class="hidden bg-green-50 rounded-2xl p-4">
+
+        <div class="flex items-center gap-3">
+
+          <div
+            id="predictionIcon"
+            class="text-4xl">
+            🥫
+          </div>
+
+
+          <div class="flex-1">
+
+            <p class="text-xs text-slate-400">
+              Identificação sugerida
+            </p>
+
+            <p
+              id="predictionName"
+              class="font-extrabold text-lg">
+              Alimento
+            </p>
+
+            <p
+              id="predictionConfidence"
+              class="text-xs text-green-700 mt-1">
+              Confiança: --
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div
+          id="predictionSources"
+          class="mt-3 text-xs text-slate-500">
+        </div>
+
+
+        <button
+          onclick="usePrediction()"
+          class="w-full mt-4 bg-green-600 text-white py-3 rounded-xl font-bold">
+
+          ✓ Usar identificação
+
+        </button>
+
+
+        <button
+          onclick="captureAndClassify()"
+          class="w-full mt-2 text-xs text-slate-400 py-1">
+
+          Não é isso? Analisar novamente
+
+        </button>
+
+      </div>
+
+
+      <!-- ACTIONS -->
+
+      <div class="grid grid-cols-2 gap-3 mt-4">
+
+        <button
+          onclick="captureAndClassify()"
+          class="bg-green-100 text-green-700 py-3 rounded-xl font-bold text-sm">
+
+          🤖 Analisar agora
+
+        </button>
+
+
+        <button
+          onclick="startBarcodeScanner()"
+          class="bg-slate-100 text-slate-700 py-3 rounded-xl font-bold text-sm">
+
+          🏷️ Código de barras
+
+        </button>
+
+      </div>
+
+
+      <button
+        onclick="openManualForm()"
+        class="w-full mt-3 bg-white border border-slate-200 text-slate-600 py-3 rounded-xl font-bold text-sm">
+
+        ✎ Cadastrar manualmente
+
+      </button>
+
+
+      <!-- FORM -->
+
+      <div
+        id="productForm"
+        class="hidden mt-4">
+
+        <label class="text-sm font-bold">
+          Alimento
+        </label>
+
+        <input
+          id="foodName"
+          class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none"
+          placeholder="Ex: Trento">
+
+        <label class="text-sm font-bold block mt-4">
+          Validade
+        </label>
+
+        <input
+          id="expiryDate"
+          type="date"
+          class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none">
+
+        <button
+          onclick="saveFood()"
+          class="w-full mt-4 bg-green-600 text-white py-4 rounded-2xl font-bold">
+
+          ✓ Salvar na despensa
+
+        </button>
+
+      </div>
+
+    </div>
+
   </div>
 
-  <div class="grid grid-cols-2 gap-3 mt-4">
-    <button onclick="captureAndClassify()" class="bg-green-100 text-green-700 py-3 rounded-xl font-bold text-sm">🤖 Analisar agora</button>
-    <button onclick="startBarcodeScanner()" class="bg-slate-100 text-slate-700 py-3 rounded-xl font-bold text-sm">🏷️ Código de barras</button>
+</div>
+
+
+<!-- ========================================================= -->
+<!-- =================== MANUAL MODAL ========================= -->
+<!-- ========================================================= -->
+
+<div
+  id="manualModal"
+  class="hidden fixed inset-0 z-50 modal-bg flex items-end justify-center">
+
+  <div class="bg-white w-full max-w-md rounded-t-[32px] overflow-hidden">
+
+    <div class="p-4 flex items-center justify-between">
+
+      <div>
+
+        <p class="text-xs text-slate-400">
+          Cadastro manual
+        </p>
+
+        <h3 class="font-extrabold text-xl">
+          Adicionar alimento
+        </h3>
+
+      </div>
+
+
+      <button
+        onclick="closeManualAdd()"
+        class="w-10 h-10 rounded-full bg-slate-100">
+        ✕
+      </button>
+
+    </div>
+
+
+    <div class="p-5">
+
+      <label class="text-sm font-bold">
+        Alimento
+      </label>
+
+      <input
+        id="manualFoodName"
+        class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none"
+        placeholder="Ex: Banana">
+
+
+      <label class="text-sm font-bold block mt-4">
+        Validade
+      </label>
+
+      <input
+        id="manualExpiryDate"
+        type="date"
+        class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none">
+
+
+      <button
+        onclick="saveManualFood()"
+        class="w-full mt-5 bg-green-600 text-white py-4 rounded-2xl font-bold">
+
+        ✓ Salvar na despensa
+
+      </button>
+
+    </div>
+
   </div>
 
-  <button onclick="openManualForm()" class="w-full mt-3 bg-white border border-slate-200 text-slate-600 py-3 rounded-xl font-bold text-sm">✎ Cadastrar manualmente</button>
-
-  <div id="productForm" class="hidden mt-4">
-    <label class="text-sm font-bold">Alimento</label>
-    <input id="foodName" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none">
-    <label class="text-sm font-bold block mt-4">Validade</label>
-    <input id="expiryDate" type="date" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none">
-    <button onclick="saveFood()" class="w-full mt-4 bg-green-600 text-white py-4 rounded-2xl font-bold">✓ Salvar na despensa</button>
-  </div>
 </div>
 
-</div>
-</div>
-
-<!-- CADASTRO MANUAL (independente da câmera) -->
-<div id="manualModal" class="hidden fixed inset-0 z-50 modal-bg flex items-end justify-center">
-<div class="bg-white w-full max-w-md rounded-t-[32px] overflow-hidden">
-<div class="p-4 flex items-center justify-between">
-<div><p class="text-xs text-slate-400">Cadastro manual</p><h3 class="font-extrabold text-xl">Adicionar alimento</h3></div>
-<button onclick="closeManualAdd()" class="w-10 h-10 rounded-full bg-slate-100">✕</button>
-</div>
-<div class="p-5">
-<label class="text-sm font-bold">Alimento</label>
-<input id="manualFoodName" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none" placeholder="Ex: Banana">
-<label class="text-sm font-bold block mt-4">Validade</label>
-<input id="manualExpiryDate" type="date" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none">
-<button onclick="saveManualFood()" class="w-full mt-5 bg-green-600 text-white py-4 rounded-2xl font-bold">✓ Salvar na despensa</button>
-</div>
-</div>
-</div>
 
 <script>
+
+/* ============================================================
+   CONFIGURAÇÕES
+============================================================ */
+
+const OPEN_FOOD_FACTS_SEARCH =
+  "https://world.openfoodfacts.org/cgi/search.pl";
+
+const OPEN_FOOD_FACTS_PRODUCT =
+  "https://world.openfoodfacts.org/api/v2/product/";
+
 const FOOD_ICONS = {
-apple:"🍎", banana:"🍌", orange:"🍊", lemon:"🍋", pineapple:"🍍",
-strawberry:"🍓", tomato:"🍅", carrot:"🥕", potato:"🥔", broccoli:"🥦",
-cucumber:"🥒", onion:"🧅", garlic:"🧄", corn:"🌽", mushroom:"🍄",
-avocado:"🥑", pepper:"🌶️", lettuce:"🥬", cabbage:"🥬",
-milk:"🥛", cheese:"🧀", egg:"🥚", eggs:"🥚", bread:"🍞",
-chicken:"🍗", meat:"🥩", beef:"🥩", fish:"🐟", rice:"🍚",
-pasta:"🍝", pizza:"🍕", yogurt:"🥛", sausage:"🌭"
+
+  apple:"🍎",
+  banana:"🍌",
+  orange:"🍊",
+  lemon:"🍋",
+  pineapple:"🍍",
+  strawberry:"🍓",
+  tomato:"🍅",
+  carrot:"🥕",
+  potato:"🥔",
+  broccoli:"🥦",
+  cucumber:"🥒",
+  onion:"🧅",
+  garlic:"🧄",
+  corn:"🌽",
+  mushroom:"🍄",
+  avocado:"🥑",
+  pepper:"🌶️",
+  lettuce:"🥬",
+  cabbage:"🥬",
+
+  milk:"🥛",
+  cheese:"🧀",
+  egg:"🥚",
+  eggs:"🥚",
+  bread:"🍞",
+
+  chicken:"🍗",
+  meat:"🥩",
+  beef:"🥩",
+  fish:"🐟",
+
+  rice:"🍚",
+  pasta:"🍝",
+  pizza:"🍕",
+  yogurt:"🥛",
+  sausage:"🌭",
+
+  chocolate:"🍫",
+  wafer:"🍫",
+  biscuit:"🍪",
+  cookie:"🍪",
+  cereal:"🥣",
+  juice:"🧃",
+  water:"💧",
+  coffee:"☕"
 };
 
-let foods = JSON.parse(localStorage.getItem("saborValidadeFoods") || "[]");
+
+/* ============================================================
+   ESTADO
+============================================================ */
+
+let foods =
+  JSON.parse(
+    localStorage.getItem("saborValidadeFoods") || "[]"
+  );
+
 let model = null;
+
 let cameraStream = null;
+
 let html5Qr = null;
+
 let scannerRunning = false;
+
 let lastPrediction = null;
+
 let analyzing = false;
 
+let ocrWorker = null;
+
+
+/* ============================================================
+   RECEITAS
+============================================================ */
+
 const recipes = [
-{name:"Omelete de queijo e tomate", time:"10 min", needs:["ovo","queijo","tomate"], icon:"🍳"},
-{name:"Sanduíche de queijo", time:"8 min", needs:["bread","queijo"], icon:"🥪"},
-{name:"Arroz com frango", time:"25 min", needs:["rice","chicken"], icon:"🍚"},
-{name:"Salada rápida", time:"10 min", needs:["tomate","lettuce","carrot"], icon:"🥗"},
-{name:"Vitamina de banana", time:"5 min", needs:["banana","milk"], icon:"🥤"},
-{name:"Banana frita", time:"10 min", needs:["banana"], icon:"🍌"},
-{name:"Macarrão com queijo", time:"15 min", needs:["pasta","queijo"], icon:"🍝"}
+
+  {
+    name:"Omelete de queijo e tomate",
+    time:"10 min",
+    needs:["ovo","queijo","tomate"],
+    icon:"🍳"
+  },
+
+  {
+    name:"Sanduíche de queijo",
+    time:"8 min",
+    needs:["pão","queijo"],
+    icon:"🥪"
+  },
+
+  {
+    name:"Arroz com frango",
+    time:"25 min",
+    needs:["arroz","frango"],
+    icon:"🍚"
+  },
+
+  {
+    name:"Salada rápida",
+    time:"10 min",
+    needs:["tomate","alface","cenoura"],
+    icon:"🥗"
+  },
+
+  {
+    name:"Vitamina de banana",
+    time:"5 min",
+    needs:["banana","leite"],
+    icon:"🥤"
+  },
+
+  {
+    name:"Banana frita",
+    time:"10 min",
+    needs:["banana"],
+    icon:"🍌"
+  },
+
+  {
+    name:"Macarrão com queijo",
+    time:"15 min",
+    needs:["macarrão","queijo"],
+    icon:"🍝"
+  }
+
 ];
 
-function saveDB(){ localStorage.setItem("saborValidadeFoods", JSON.stringify(foods)); }
+
+/* ============================================================
+   BANCO LOCAL
+============================================================ */
+
+function saveDB(){
+
+  localStorage.setItem(
+    "saborValidadeFoods",
+    JSON.stringify(foods)
+  );
+
+}
+
+
+/* ============================================================
+   ÍCONES
+============================================================ */
 
 function iconFor(name){
-const n = name.toLowerCase();
-for(const [key, icon] of Object.entries(FOOD_ICONS)){
-if(n.includes(key)) return icon;
+
+  const n = String(name).toLowerCase();
+
+  for(
+    const [key, icon]
+    of Object.entries(FOOD_ICONS)
+  ){
+
+    if(n.includes(key)){
+      return icon;
+    }
+
+  }
+
+  if(n.includes("maçã") || n.includes("maca")) return "🍎";
+  if(n.includes("laranja")) return "🍊";
+  if(n.includes("leite")) return "🥛";
+  if(n.includes("ovo")) return "🥚";
+  if(n.includes("queijo")) return "🧀";
+  if(n.includes("frango")) return "🍗";
+  if(n.includes("arroz")) return "🍚";
+  if(n.includes("pão") || n.includes("pao")) return "🍞";
+  if(n.includes("tomate")) return "🍅";
+  if(n.includes("banana")) return "🍌";
+  if(n.includes("trento")) return "🍫";
+
+  return "🥫";
+
 }
-if(n.includes("maçã") || n.includes("maca")) return "🍎";
-if(n.includes("leite")) return "🥛";
-if(n.includes("ovo")) return "🥚";
-if(n.includes("queijo")) return "🧀";
-if(n.includes("frango")) return "🍗";
-if(n.includes("arroz")) return "🍚";
-if(n.includes("pão") || n.includes("pao")) return "🍞";
-if(n.includes("tomate")) return "🍅";
-if(n.includes("banana")) return "🍌";
-return "🥫";
-}
+
+
+/* ============================================================
+   DATA
+============================================================ */
 
 function dateStatus(date){
-const d = new Date(date + "T00:00:00");
-const today = new Date(); today.setHours(0,0,0,0);
-const days = Math.ceil((d-today)/86400000);
-if(days < 0) return ["Vencido","bg-red-100 text-red-600"];
-if(days <= 2) return ["Vence logo","bg-orange-100 text-orange-600"];
-return ["Na validade","bg-green-100 text-green-700"];
+
+  const d =
+    new Date(date + "T00:00:00");
+
+  const today =
+    new Date();
+
+  today.setHours(0,0,0,0);
+
+  const days =
+    Math.ceil(
+      (d - today) / 86400000
+    );
+
+  if(days < 0){
+
+    return [
+      "Vencido",
+      "bg-red-100 text-red-600"
+    ];
+
+  }
+
+  if(days <= 2){
+
+    return [
+      "Vence logo",
+      "bg-orange-100 text-orange-600"
+    ];
+
+  }
+
+  return [
+    "Na validade",
+    "bg-green-100 text-green-700"
+  ];
+
 }
+
+
+/* ============================================================
+   CARD
+============================================================ */
 
 function card(food){
-const [status, cls] = dateStatus(food.expiry);
-return `<div class="bg-white rounded-2xl border border-slate-100 p-4">
-<div class="flex items-center gap-3">
-<div class="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-3xl">${food.icon}</div>
-<div class="flex-1">
-<div class="flex justify-between gap-2">
-<h4 class="font-bold">${esc(food.name)}</h4>
-<span class="px-2 py-1 rounded-lg text-[10px] font-bold ${cls}">${status}</span>
-</div>
-<p class="text-xs text-slate-400 mt-1">Validade: ${new Date(food.expiry+"T00:00:00").toLocaleDateString("pt-BR")}</p>
-</div>
-</div>
-<div class="flex gap-2 mt-4">
-<button onclick="showFoodRecipes('${attr(food.name)}')" class="flex-1 bg-green-50 text-green-700 rounded-xl py-2.5 text-xs font-bold">🍳 Ver Receitas</button>
-<button onclick="consumeFood(${food.id})" class="px-4 bg-slate-100 text-slate-600 rounded-xl py-2.5 text-xs font-bold">Consumir</button>
-</div>
-</div>`;
+
+  const [status, cls] =
+    dateStatus(food.expiry);
+
+  return `
+
+  <div class="bg-white rounded-2xl border border-slate-100 p-4">
+
+    <div class="flex items-center gap-3">
+
+      <div class="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-3xl">
+        ${food.icon}
+      </div>
+
+      <div class="flex-1">
+
+        <div class="flex justify-between gap-2">
+
+          <h4 class="font-bold">
+            ${esc(food.name)}
+          </h4>
+
+          <span class="px-2 py-1 rounded-lg text-[10px] font-bold ${cls}">
+            ${status}
+          </span>
+
+        </div>
+
+        <p class="text-xs text-slate-400 mt-1">
+          Validade:
+          ${new Date(food.expiry+"T00:00:00").toLocaleDateString("pt-BR")}
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div class="flex gap-2 mt-4">
+
+      <button
+        onclick="showFoodRecipes('${attr(food.name)}')"
+        class="flex-1 bg-green-50 text-green-700 rounded-xl py-2.5 text-xs font-bold">
+
+        🍳 Ver Receitas
+
+      </button>
+
+
+      <button
+        onclick="consumeFood(${food.id})"
+        class="px-4 bg-slate-100 text-slate-600 rounded-xl py-2.5 text-xs font-bold">
+
+        Consumir
+
+      </button>
+
+    </div>
+
+  </div>
+
+  `;
+
 }
+
+
+/* ============================================================
+   RENDER
+============================================================ */
 
 function render(){
-document.getElementById("homeFoodList").innerHTML = foods.slice(0,3).map(card).join("") || empty();
-document.getElementById("pantryFoodList").innerHTML = foods.map(card).join("") || empty();
-let exp=0, venc=0;
-foods.forEach(f=>{const s=dateStatus(f.expiry)[0]; if(s==="Vence logo")exp++; if(s==="Vencido")venc++;});
-document.getElementById("totalItems").textContent=foods.length;
-document.getElementById("expiringItems").textContent=exp;
-document.getElementById("expiredItems").textContent=venc;
+
+  document.getElementById("homeFoodList")
+    .innerHTML =
+      foods.slice(0,3)
+        .map(card)
+        .join("")
+      || empty();
+
+
+  document.getElementById("pantryFoodList")
+    .innerHTML =
+      foods
+        .map(card)
+        .join("")
+      || empty();
+
+
+  let exp = 0;
+  let venc = 0;
+
+  foods.forEach(f => {
+
+    const s =
+      dateStatus(f.expiry)[0];
+
+    if(s === "Vence logo") exp++;
+
+    if(s === "Vencido") venc++;
+
+  });
+
+
+  document.getElementById("totalItems")
+    .textContent = foods.length;
+
+  document.getElementById("expiringItems")
+    .textContent = exp;
+
+  document.getElementById("expiredItems")
+    .textContent = venc;
+
 }
 
-function empty(){return `<div class="text-center py-12"><div class="text-5xl">🥕</div><p class="font-bold mt-3">Nenhum alimento salvo.</p><p class="text-sm text-slate-400 mt-1">Escaneie ou cadastre manualmente para adicionar.</p></div>`;}
+
+/* ============================================================
+   EMPTY
+============================================================ */
+
+function empty(){
+
+  return `
+
+  <div class="text-center py-12">
+
+    <div class="text-5xl">
+      🥕
+    </div>
+
+    <p class="font-bold mt-3">
+      Nenhum alimento salvo.
+    </p>
+
+    <p class="text-sm text-slate-400 mt-1">
+      Escaneie ou cadastre manualmente para adicionar.
+    </p>
+
+  </div>
+
+  `;
+
+}
+
+
+/* ============================================================
+   TELAS
+============================================================ */
 
 function showScreen(id){
-document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-document.querySelectorAll(".nav-item").forEach(x=>x.classList.toggle("active",x.dataset.screen===id));
-scrollTo(0,0);
+
+  document
+    .querySelectorAll(".screen")
+    .forEach(x =>
+      x.classList.remove("active")
+    );
+
+
+  document
+    .getElementById(id)
+    .classList.add("active");
+
+
+  document
+    .querySelectorAll(".nav-item")
+    .forEach(x =>
+      x.classList.toggle(
+        "active",
+        x.dataset.screen === id
+      )
+    );
+
+
+  scrollTo(0,0);
+
 }
 
-/* ===== CADASTRO MANUAL INDEPENDENTE (sem câmera) ===== */
+
+/* ============================================================
+   CADASTRO MANUAL
+============================================================ */
+
 function openManualAdd(){
-document.getElementById("manualModal").classList.remove("hidden");
-document.getElementById("manualFoodName").value="";
-const d=new Date(); d.setDate(d.getDate()+7);
-document.getElementById("manualExpiryDate").value=d.toISOString().slice(0,10);
-setTimeout(()=>document.getElementById("manualFoodName").focus(),100);
+
+  document
+    .getElementById("manualModal")
+    .classList.remove("hidden");
+
+
+  document
+    .getElementById("manualFoodName")
+    .value = "";
+
+
+  const d = new Date();
+
+  d.setDate(
+    d.getDate() + 7
+  );
+
+
+  document
+    .getElementById("manualExpiryDate")
+    .value =
+      d.toISOString().slice(0,10);
+
+
+  setTimeout(
+    () =>
+      document
+        .getElementById("manualFoodName")
+        .focus(),
+    100
+  );
+
 }
+
 
 function closeManualAdd(){
-document.getElementById("manualModal").classList.add("hidden");
+
+  document
+    .getElementById("manualModal")
+    .classList.add("hidden");
+
 }
+
 
 function saveManualFood(){
-const name=document.getElementById("manualFoodName").value.trim();
-const expiry=document.getElementById("manualExpiryDate").value;
-if(!name){alert("Informe o nome do alimento.");return;}
-if(!expiry){alert("Informe a data de validade.");return;}
-foods.unshift({id:Date.now(),name,icon:iconFor(name),expiry});
-saveDB(); render(); closeManualAdd(); showScreen("pantry");
+
+  const name =
+    document
+      .getElementById("manualFoodName")
+      .value
+      .trim();
+
+
+  const expiry =
+    document
+      .getElementById("manualExpiryDate")
+      .value;
+
+
+  if(!name){
+
+    alert(
+      "Informe o nome do alimento."
+    );
+
+    return;
+
+  }
+
+
+  if(!expiry){
+
+    alert(
+      "Informe a data de validade."
+    );
+
+    return;
+
+  }
+
+
+  foods.unshift({
+
+    id: Date.now(),
+
+    name,
+
+    icon: iconFor(name),
+
+    expiry
+
+  });
+
+
+  saveDB();
+
+  render();
+
+  closeManualAdd();
+
+  showScreen("pantry");
+
 }
 
-/* ===== SCANNER COM CÂMERA / IA ===== */
+
+/* ============================================================
+   ABRIR SCANNER
+============================================================ */
+
 async function openScanner(){
-document.getElementById("scannerModal").classList.remove("hidden");
-setStatus("Inicializando câmera e IA...","Permita o acesso à câmera.","⏳");
-await startCamera();
-await loadAI();
+
+  document
+    .getElementById("scannerModal")
+    .classList.remove("hidden");
+
+
+  setStatus(
+    "Inicializando câmera...",
+    "Permita o acesso à câmera.",
+    "⏳"
+  );
+
+
+  await startCamera();
+
+  await loadAI();
+
 }
+
+
+/* ============================================================
+   FECHAR SCANNER
+============================================================ */
 
 async function closeScanner(){
-await stopBarcodeScanner();
-if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null;}
-document.getElementById("aiCamera").srcObject=null;
-document.getElementById("scannerModal").classList.add("hidden");
-document.getElementById("predictionBox").classList.add("hidden");
-document.getElementById("productForm").classList.add("hidden");
+
+  await stopBarcodeScanner();
+
+
+  if(cameraStream){
+
+    cameraStream
+      .getTracks()
+      .forEach(
+        t => t.stop()
+      );
+
+    cameraStream = null;
+
+  }
+
+
+  document
+    .getElementById("aiCamera")
+    .srcObject = null;
+
+
+  document
+    .getElementById("scannerModal")
+    .classList.add("hidden");
+
+
+  document
+    .getElementById("predictionBox")
+    .classList.add("hidden");
+
+
+  document
+    .getElementById("productForm")
+    .classList.add("hidden");
+
 }
+
+
+/* ============================================================
+   CÂMERA
+============================================================ */
 
 async function startCamera(){
-try{
-cameraStream = await navigator.mediaDevices.getUserMedia({
-video:{facingMode:{ideal:"environment"}, width:{ideal:1280}, height:{ideal:720}},
-audio:false
-});
-document.getElementById("aiCamera").srcObject=cameraStream;
-setStatus("Câmera ativa","Centralize o alimento no quadro e toque em “Analisar agora”.","📷");
-}catch(e){
-setStatus("Câmera bloqueada","Abra o site em HTTPS e permita o acesso à câmera, ou cadastre manualmente.","⚠️");
+
+  try{
+
+    cameraStream =
+      await navigator.mediaDevices.getUserMedia({
+
+        video:{
+
+          facingMode:{
+            ideal:"environment"
+          },
+
+          width:{
+            ideal:1280
+          },
+
+          height:{
+            ideal:720
+
+          }
+
+        },
+
+        audio:false
+
+      });
+
+
+    document
+      .getElementById("aiCamera")
+      .srcObject =
+        cameraStream;
+
+
+    setStatus(
+      "Câmera ativa",
+      "Centralize o alimento e toque em Analisar agora.",
+      "📷"
+    );
+
+
+  }catch(e){
+
+    console.error(e);
+
+    setStatus(
+      "Câmera bloqueada",
+      "Abra o site em HTTPS e permita o acesso à câmera.",
+      "⚠️"
+    );
+
+  }
+
 }
-}
+
+
+/* ============================================================
+   MOBILE NET
+============================================================ */
 
 async function loadAI(){
-try{
-await tf.ready();
-if(!model){
-setStatus("Baixando modelo de IA...","Isso acontece apenas na primeira utilização (fica em cache no navegador).","🧠");
-// alpha 0.50: modelo mais leve e mais rápido para baixar/rodar no celular,
-// mantendo boa precisão quando combinado ao recorte central da imagem.
-model=await mobilenet.load({version:2, alpha:0.50});
-}
-setStatus("IA pronta","MobileNet carregada. Centralize o alimento e analise.","🤖");
-}catch(e){
-console.error(e);
-setStatus("Erro ao carregar IA","Confira sua conexão com a internet ou cadastre manualmente.","⚠️");
-}
+
+  try{
+
+    await tf.ready();
+
+
+    if(!model){
+
+      setStatus(
+        "Carregando IA visual...",
+        "Baixando o modelo pela primeira vez.",
+        "🧠"
+      );
+
+
+      model =
+        await mobilenet.load({
+
+          version:2,
+
+          alpha:0.50
+
+        });
+
+    }
+
+
+    setStatus(
+      "IA pronta",
+      "Visão + OCR + busca inteligente disponíveis.",
+      "🤖"
+    );
+
+
+  }catch(e){
+
+    console.error(e);
+
+    setStatus(
+      "Erro ao carregar IA",
+      "Confira sua conexão com a internet.",
+      "⚠️"
+    );
+
+  }
+
 }
 
-function setStatus(title, desc, icon){
-document.getElementById("aiStatus").innerHTML=`<div class="flex gap-3 items-center"><div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center">${icon}</div><div><p class="font-bold">${esc(title)}</p><p class="text-xs text-slate-400 mt-1">${esc(desc)}</p></div></div>`;
+
+/* ============================================================
+   STATUS
+============================================================ */
+
+function setStatus(
+  title,
+  desc,
+  icon
+){
+
+  document
+    .getElementById("aiStatus")
+    .innerHTML = `
+
+      <div class="flex gap-3 items-center">
+
+        <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center">
+          ${icon}
+        </div>
+
+        <div>
+
+          <p class="font-bold">
+            ${esc(title)}
+          </p>
+
+          <p class="text-xs text-slate-400 mt-1">
+            ${esc(desc)}
+          </p>
+
+        </div>
+
+      </div>
+
+  `;
+
 }
+
+
+/* ============================================================
+   PROGRESSO
+============================================================ */
+
+function showProgress(text, percent){
+
+  document
+    .getElementById("analysisProgress")
+    .classList.remove("hidden");
+
+
+  document
+    .getElementById("analysisProgressBar")
+    .style.width =
+      percent + "%";
+
+
+  document
+    .getElementById("analysisProgressText")
+    .textContent =
+      text;
+
+}
+
+
+function hideProgress(){
+
+  document
+    .getElementById("analysisProgress")
+    .classList.add("hidden");
+
+}
+
+
+/* ============================================================
+   CAPTURA E ANÁLISE PRINCIPAL
+============================================================ */
 
 async function captureAndClassify(){
-if(analyzing) return;
-if(!model) await loadAI();
-if(!model) return;
 
-analyzing=true;
-document.getElementById("predictionBox").classList.add("hidden");
-setStatus("IA analisando...","Focando no alimento centralizado no quadro.","🧠");
+  if(analyzing) return;
 
-const video=document.getElementById("aiCamera");
-const canvas=document.getElementById("aiCanvas");
 
-// Recorta um quadrado central (mesma área do guia branco na tela) antes de
-// classificar. Isso evita a distorção de esticar a imagem inteira da câmera
-// (retangular) para o formato quadrado que o modelo espera, e concentra a
-// análise no alimento em vez do fundo — o principal motivo de erros como
-// confundir uma banana com outro objeto.
-const vw=video.videoWidth || 640;
-const vh=video.videoHeight || 480;
-const side=Math.min(vw,vh)*0.68;
-const sx=(vw-side)/2;
-const sy=(vh-side)/2;
-const outSize=260;
-canvas.width=outSize;
-canvas.height=outSize;
-canvas.getContext("2d").drawImage(video, sx, sy, side, side, 0, 0, outSize, outSize);
+  if(!model){
 
-try{
-const predictions=await model.classify(canvas,10);
-const best=pickFoodPrediction(predictions);
-if(best){
-lastPrediction=best;
-document.getElementById("predictionBox").classList.remove("hidden");
-document.getElementById("predictionIcon").textContent=iconFor(best.name);
-document.getElementById("predictionName").textContent=best.name;
-document.getElementById("predictionConfidence").textContent=`Confiança do modelo: ${Math.round(best.probability*100)}%`;
-setStatus("Alimento detectado","Confira o resultado antes de salvar — você pode corrigir o nome depois.","✓");
-}else{
-setStatus("Não reconheci o alimento","Tente centralizar melhor, aproximar a câmera, ou cadastre manualmente.","⚠️");
+    await loadAI();
+
+  }
+
+
+  if(!model){
+
+    return;
+
+  }
+
+
+  const video =
+    document.getElementById("aiCamera");
+
+
+  if(!video.videoWidth){
+
+    setStatus(
+      "Câmera ainda não está pronta",
+      "Aguarde um segundo e tente novamente.",
+      "⚠️"
+    );
+
+    return;
+
+  }
+
+
+  analyzing = true;
+
+
+  document
+    .getElementById("predictionBox")
+    .classList.add("hidden");
+
+
+  showProgress(
+    "Capturando imagem...",
+    10
+  );
+
+
+  setStatus(
+    "Analisando...",
+    "A IA está examinando o alimento.",
+    "🧠"
+  );
+
+
+  const canvas =
+    document.getElementById("aiCanvas");
+
+
+  const vw =
+    video.videoWidth || 640;
+
+
+  const vh =
+    video.videoHeight || 480;
+
+
+  const side =
+    Math.min(vw,vh) * 0.72;
+
+
+  const sx =
+    (vw-side)/2;
+
+
+  const sy =
+    (vh-side)/2;
+
+
+  const outSize = 640;
+
+
+  canvas.width =
+    outSize;
+
+
+  canvas.height =
+    outSize;
+
+
+  const ctx =
+    canvas.getContext("2d");
+
+
+  ctx.drawImage(
+    video,
+    sx,
+    sy,
+    side,
+    side,
+    0,
+    0,
+    outSize,
+    outSize
+  );
+
+
+  try{
+
+    /* =========================================
+       ETAPA 1 — MOBILENET
+    ========================================= */
+
+    showProgress(
+      "IA visual identificando objetos...",
+      25
+    );
+
+
+    const predictions =
+      await model.classify(
+        canvas,
+        10
+      );
+
+
+    const visualResults =
+      processVisualPredictions(
+        predictions
+      );
+
+
+    /* =========================================
+       ETAPA 2 — OCR
+    ========================================= */
+
+    showProgress(
+      "Lendo texto da embalagem...",
+      45
+    );
+
+
+    const ocrText =
+      await runOCR(canvas);
+
+
+    console.log(
+      "OCR:",
+      ocrText
+    );
+
+
+    /* =========================================
+       ETAPA 3 — BUSCA DE PRODUTO
+    ========================================= */
+
+    showProgress(
+      "Pesquisando possíveis produtos...",
+      65
+    );
+
+
+    const searchResults =
+      await searchFoodDatabase(
+        ocrText,
+        visualResults
+      );
+
+
+    /* =========================================
+       ETAPA 4 — COMBINAÇÃO
+    ========================================= */
+
+    showProgress(
+      "Comparando os resultados...",
+      85
+    );
+
+
+    const finalResult =
+      combineResults(
+        visualResults,
+        ocrText,
+        searchResults
+      );
+
+
+    showProgress(
+      "Análise concluída.",
+      100
+    );
+
+
+    if(finalResult){
+
+      lastPrediction =
+        finalResult;
+
+
+      showPrediction(
+        finalResult
+      );
+
+
+      setStatus(
+        "Alimento identificado",
+        "Confira o resultado antes de salvar.",
+        "✓"
+      );
+
+
+    }else{
+
+      setStatus(
+        "Não consegui identificar",
+        "Aproxime o alimento, melhore a iluminação ou tente novamente.",
+        "⚠️"
+      );
+
+    }
+
+
+  }catch(e){
+
+    console.error(
+      "Erro na análise:",
+      e
+    );
+
+
+    setStatus(
+      "Falha na análise",
+      "Tente novamente ou cadastre manualmente.",
+      "⚠️"
+    );
+
+
+  }finally{
+
+    analyzing = false;
+
+    setTimeout(
+      hideProgress,
+      1200
+    );
+
+  }
+
 }
-}catch(e){
-console.error(e);
-setStatus("Falha na análise","Tente novamente ou cadastre manualmente.","⚠️");
-}finally{
-analyzing=false;
-}
+
+
+/* ============================================================
+   MOBILE NET — PROCESSAMENTO
+============================================================ */
+
+function processVisualPredictions(
+  predictions
+){
+
+  const results = [];
+
+
+  for(const p of predictions){
+
+    const normalized =
+      normalizeLabel(
+        p.className
+      );
+
+
+    results.push({
+
+      original:
+        p.className,
+
+      name:
+        normalized,
+
+      probability:
+        p.probability
+
+    });
+
+  }
+
+
+  return results;
+
 }
 
-function pickFoodPrediction(predictions){
-const translated = predictions.map(p=>({
-...p,
-name: normalizeLabel(p.className)
-}));
-const foodWords=[
-"apple","banana","orange","lemon","pineapple","strawberry","tomato","carrot","potato",
-"broccoli","cucumber","onion","garlic","corn","mushroom","avocado","pepper","lettuce",
-"cabbage","milk","cheese","egg","bread","chicken","meat","beef","fish","rice","pasta",
-"pizza","yogurt","sausage"
-];
-const found=translated.find(p=>foodWords.some(w=>p.className.toLowerCase().includes(w)));
-return found || (translated[0] && translated[0].probability>=0.30 ? translated[0] : null);
-}
+
+/* ============================================================
+   NORMALIZAÇÃO
+============================================================ */
 
 function normalizeLabel(label){
-const map=[
-["Granny Smith","Maçã"],["apple","Maçã"],["banana","Banana"],["orange","Laranja"],
-["lemon","Limão"],["pineapple","Abacaxi"],["strawberry","Morango"],["tomato","Tomate"],
-["carrot","Cenoura"],["potato","Batata"],["broccoli","Brócolis"],["cucumber","Pepino"],
-["onion","Cebola"],["garlic","Alho"],["corn","Milho"],["mushroom","Cogumelo"],
-["avocado","Abacate"],["bell pepper","Pimentão"],["pepper","Pimenta"],
-["lettuce","Alface"],["cabbage","Repolho"],["milk","Leite"],["cheese","Queijo"],
-["egg","Ovo"],["bread","Pão"],["chicken","Frango"],["beef","Carne bovina"],
-["meat","Carne"],["fish","Peixe"],["rice","Arroz"],["pasta","Macarrão"],
-["pizza","Pizza"],["yogurt","Iogurte"],["sausage","Linguiça"]
-];
-const hit=map.find(x=>label.toLowerCase().includes(x[0].toLowerCase()));
-return hit ? hit[1] : label.replace(/,/g,"");
+
+  const text =
+    String(label)
+      .toLowerCase();
+
+
+  const map = [
+
+    ["granny smith","Maçã"],
+    ["apple","Maçã"],
+
+    ["banana","Banana"],
+
+    ["orange","Laranja"],
+
+    ["lemon","Limão"],
+
+    ["pineapple","Abacaxi"],
+
+    ["strawberry","Morango"],
+
+    ["tomato","Tomate"],
+
+    ["carrot","Cenoura"],
+
+    ["potato","Batata"],
+
+    ["broccoli","Brócolis"],
+
+    ["cucumber","Pepino"],
+
+    ["onion","Cebola"],
+
+    ["garlic","Alho"],
+
+    ["corn","Milho"],
+
+    ["mushroom","Cogumelo"],
+
+    ["avocado","Abacate"],
+
+    ["bell pepper","Pimentão"],
+
+    ["pepper","Pimenta"],
+
+    ["lettuce","Alface"],
+
+    ["cabbage","Repolho"],
+
+    ["milk","Leite"],
+
+    ["cheese","Queijo"],
+
+    ["egg","Ovo"],
+
+    ["bread","Pão"],
+
+    ["chicken","Frango"],
+
+    ["beef","Carne bovina"],
+
+    ["meat","Carne"],
+
+    ["fish","Peixe"],
+
+    ["rice","Arroz"],
+
+    ["pasta","Macarrão"],
+
+    ["pizza","Pizza"],
+
+    ["yogurt","Iogurte"],
+
+    ["sausage","Linguiça"],
+
+    ["chocolate","Chocolate"],
+
+    ["wafer","Wafer"],
+
+    ["biscuit","Biscoito"],
+
+    ["cookie","Biscoito"],
+
+    ["cereal","Cereal"]
+
+  ];
+
+
+  const hit =
+    map.find(
+      x =>
+        text.includes(
+          x[0]
+        )
+    );
+
+
+  return hit
+    ? hit[1]
+    : label
+        .replace(/,/g,"");
+
 }
+
+
+/* ============================================================
+   OCR
+============================================================ */
+
+async function runOCR(canvas){
+
+  try{
+
+    if(
+      typeof Tesseract ===
+      "undefined"
+    ){
+
+      return "";
+
+    }
+
+
+    const result =
+      await Tesseract.recognize(
+        canvas,
+        "por+eng",
+        {
+
+          logger:
+            message => {
+
+              if(
+                message.status ===
+                "recognizing text"
+              ){
+
+                const progress =
+                  Math.round(
+                    message.progress * 100
+                  );
+
+
+                const visualProgress =
+                  45 +
+                  Math.round(
+                    progress * 0.15
+                  );
+
+
+                showProgress(
+                  "Lendo texto da embalagem...",
+                  visualProgress
+                );
+
+              }
+
+            }
+
+        }
+      );
+
+
+    return (
+      result?.data?.text ||
+      ""
+    ).trim();
+
+
+  }catch(e){
+
+    console.warn(
+      "OCR falhou:",
+      e
+    );
+
+
+    return "";
+
+  }
+
+}
+
+
+/* ============================================================
+   LIMPEZA DO OCR
+============================================================ */
+
+function cleanOCRText(text){
+
+  return String(text || "")
+    .replace(/\n+/g," ")
+    .replace(/\s+/g," ")
+    .trim();
+
+}
+
+
+/* ============================================================
+   PALAVRAS IMPORTANTES
+============================================================ */
+
+function extractSearchTerms(text){
+
+  const clean =
+    cleanOCRText(text);
+
+
+  if(!clean){
+    return [];
+  }
+
+
+  const words =
+    clean
+      .split(" ")
+      .filter(
+        word =>
+          word.length >= 3
+      );
+
+
+  const ignored = [
+
+    "com",
+    "sem",
+    "para",
+    "por",
+    "uma",
+    "the",
+    "and",
+    "from",
+    "net",
+    "peso",
+    "ml",
+    "g",
+    "kg"
+
+  ];
+
+
+  return [
+    ...new Set(
+      words.filter(
+        word =>
+          !ignored.includes(
+            word.toLowerCase()
+          )
+      )
+    )
+  ].slice(0,6);
+
+}
+
+
+/* ============================================================
+   BUSCA OPEN FOOD FACTS
+============================================================ */
+
+async function searchFoodDatabase(
+  ocrText,
+  visualResults
+){
+
+  const candidates = [];
+
+
+  const searchTerms =
+    extractSearchTerms(
+      ocrText
+    );
+
+
+  /* =========================================
+     PRIORIZA OCR
+  ========================================= */
+
+  for(
+    const term
+    of searchTerms.slice(0,3)
+  ){
+
+    try{
+
+      const url =
+        OPEN_FOOD_FACTS_SEARCH +
+        "?search_terms=" +
+        encodeURIComponent(term) +
+        "&search_simple=1" +
+        "&action=process" +
+        "&json=1" +
+        "&page_size=5";
+
+
+      const response =
+        await fetch(url);
+
+
+      if(!response.ok){
+        continue;
+      }
+
+
+      const data =
+        await response.json();
+
+
+      if(
+        data.products &&
+        Array.isArray(
+          data.products
+        )
+      ){
+
+        data.products
+          .forEach(product => {
+
+            const name =
+              product.product_name_pt ||
+              product.product_name ||
+              "";
+
+
+            if(name){
+
+              candidates.push({
+
+                name,
+
+                brand:
+                  product.brands ||
+                  "",
+
+                image:
+                  product.image_front_url ||
+                  product.image_url ||
+                  "",
+
+                source:
+                  "Open Food Facts",
+
+                query:
+                  term
+
+              });
+
+            }
+
+          });
+
+      }
+
+
+    }catch(e){
+
+      console.warn(
+        "Busca OFF falhou:",
+        e
+      );
+
+    }
+
+  }
+
+
+  /* =========================================
+     SE OCR NÃO FUNCIONAR
+     tenta os melhores resultados visuais
+  ========================================= */
+
+  if(
+    candidates.length === 0
+  ){
+
+    for(
+      const visual
+      of visualResults.slice(0,2)
+    ){
+
+      try{
+
+        const query =
+          visual.name;
+
+
+        const url =
+          OPEN_FOOD_FACTS_SEARCH +
+          "?search_terms=" +
+          encodeURIComponent(query) +
+          "&search_simple=1" +
+          "&action=process" +
+          "&json=1" +
+          "&page_size=5";
+
+
+        const response =
+          await fetch(url);
+
+
+        if(!response.ok){
+          continue;
+        }
+
+
+        const data =
+          await response.json();
+
+
+        if(
+          data.products
+        ){
+
+          data.products
+            .forEach(product => {
+
+              const name =
+                product.product_name_pt ||
+                product.product_name ||
+                "";
+
+
+              if(name){
+
+                candidates.push({
+
+                  name,
+
+                  brand:
+                    product.brands ||
+                    "",
+
+                  image:
+                    product.image_front_url ||
+                    product.image_url ||
+                    "",
+
+                  source:
+                    "Open Food Facts",
+
+                  query:
+                    query
+
+                });
+
+              }
+
+            });
+
+        }
+
+
+      }catch(e){
+
+        console.warn(e);
+
+      }
+
+    }
+
+  }
+
+
+  return candidates;
+
+}
+
+
+/* ============================================================
+   COMBINAR RESULTADOS
+============================================================ */
+
+function combineResults(
+  visualResults,
+  ocrText,
+  searchResults
+){
+
+  const scores = {};
+
+
+  function addScore(
+    name,
+    points,
+    source
+  ){
+
+    if(!name) return;
+
+
+    const clean =
+      normalizeFoodName(
+        name
+      );
+
+
+    if(!clean) return;
+
+
+    if(!scores[clean]){
+
+      scores[clean] = {
+
+        name: clean,
+
+        score: 0,
+
+        sources: []
+
+      };
+
+    }
+
+
+    scores[clean].score +=
+      points;
+
+
+    if(
+      !scores[clean]
+        .sources
+        .includes(source)
+    ){
+
+      scores[clean]
+        .sources
+        .push(source);
+
+    }
+
+  }
+
+
+  /* =========================================
+     VISÃO
+  ========================================= */
+
+  visualResults
+    .slice(0,5)
+    .forEach(
+      result => {
+
+        if(
+          result.probability >=
+          0.15
+        ){
+
+          addScore(
+            result.name,
+            Math.round(
+              result.probability * 35
+            ),
+            "IA visual"
+          );
+
+        }
+
+      }
+    );
+
+
+  /* =========================================
+     OCR
+  ========================================= */
+
+  const ocr =
+    cleanOCRText(
+      ocrText
+    ).toLowerCase();
+
+
+  if(ocr){
+
+    const knownProducts = [
+
+      "trento",
+      "oreo",
+      "nutella",
+      "nescau",
+      "nescau",
+      "bis",
+      "kitkat",
+      "kit kat",
+      "lacta",
+      "garoto",
+      "nestle",
+      "bauducco",
+      "toddy",
+      "chokito",
+      "sonho de valsa"
+
+    ];
+
+
+    knownProducts
+      .forEach(product => {
+
+        if(
+          ocr.includes(
+            product
+          )
+        ){
+
+          let display =
+            product;
+
+
+          if(
+            product === "kit kat"
+          ){
+
+            display =
+              "KitKat";
+
+          }
+
+
+          if(
+            product === "nescau"
+          ){
+
+            display =
+              "Nescau";
+
+          }
+
+
+          if(
+            product ===
+            "sonho de valsa"
+          ){
+
+            display =
+              "Sonho de Valsa";
+
+          }
+
+
+          addScore(
+            display,
+            45,
+            "Texto da embalagem"
+          );
+
+        }
+
+      });
+
+
+    /* =====================================
+       FRUTAS PELO OCR
+    ===================================== */
+
+    const foodNames = [
+
+      ["laranja","Laranja"],
+      ["banana","Banana"],
+      ["maçã","Maçã"],
+      ["maca","Maçã"],
+      ["tomate","Tomate"],
+      ["limão","Limão"],
+      ["limao","Limão"],
+      ["abacaxi","Abacaxi"],
+      ["morango","Morango"],
+      ["cenoura","Cenoura"],
+      ["batata","Batata"],
+      ["abacate","Abacate"]
+
+    ];
+
+
+    foodNames
+      .forEach(pair => {
+
+        if(
+          ocr.includes(
+            pair[0]
+          )
+        ){
+
+          addScore(
+            pair[1],
+            40,
+            "OCR"
+          );
+
+        }
+
+      });
+
+  }
+
+
+  /* =========================================
+     BANCO DE PRODUTOS
+  ========================================= */
+
+  searchResults
+    .forEach(product => {
+
+      const productName =
+        product.name;
+
+
+      const normalized =
+        normalizeFoodName(
+          productName
+        );
+
+
+      /* Produto encontrado pela busca */
+
+      addScore(
+        normalized,
+        35,
+        "Banco de produtos"
+      );
+
+
+      /* Marca */
+
+      if(
+        product.brand &&
+        ocr &&
+        ocr.includes(
+          product.brand.toLowerCase()
+        )
+      ){
+
+        addScore(
+          normalized,
+          20,
+          "Marca compatível"
+        );
+
+      }
+
+    });
+
+
+  const ranked =
+    Object.values(scores)
+      .sort(
+        (a,b) =>
+          b.score-a.score
+      );
+
+
+  if(
+    ranked.length === 0
+  ){
+
+    return null;
+
+  }
+
+
+  const best =
+    ranked[0];
+
+
+  const confidence =
+    Math.min(
+      98,
+      Math.max(
+        35,
+        best.score
+      )
+    );
+
+
+  return {
+
+    name:
+      best.name,
+
+    probability:
+      confidence / 100,
+
+    confidence,
+
+    sources:
+      best.sources,
+
+    ocrText:
+      cleanOCRText(
+        ocrText
+      ),
+
+    alternatives:
+      ranked
+        .slice(1,4)
+        .map(
+          x => ({
+            name:x.name,
+            score:x.score
+          })
+        )
+
+  };
+
+}
+
+
+/* ============================================================
+   NORMALIZAR NOME DO PRODUTO
+============================================================ */
+
+function normalizeFoodName(name){
+
+  let text =
+    String(name || "")
+      .trim();
+
+
+  if(!text){
+    return "";
+  }
+
+
+  const lower =
+    text.toLowerCase();
+
+
+  /* Produtos específicos */
+
+  if(
+    lower.includes("trento")
+  ){
+
+    return "Trento";
+
+  }
+
+
+  if(
+    lower.includes("oreo")
+  ){
+
+    return "Oreo";
+
+  }
+
+
+  if(
+    lower.includes("kit kat") ||
+    lower.includes("kitkat")
+  ){
+
+    return "KitKat";
+
+  }
+
+
+  if(
+    lower.includes("nutella")
+  ){
+
+    return "Nutella";
+
+  }
+
+
+  if(
+    lower.includes("nescau")
+  ){
+
+    return "Nescau";
+
+  }
+
+
+  /* Frutas */
+
+  if(
+    lower.includes("orange")
+  ){
+
+    return "Laranja";
+
+  }
+
+
+  if(
+    lower.includes("laranja")
+  ){
+
+    return "Laranja";
+
+  }
+
+
+  if(
+    lower.includes("banana")
+  ){
+
+    return "Banana";
+
+  }
+
+
+  if(
+    lower.includes("apple") ||
+    lower.includes("maçã") ||
+    lower.includes("maca")
+  ){
+
+    return "Maçã";
+
+  }
+
+
+  return text
+    .replace(/\s+/g," ")
+    .slice(0,80);
+
+}
+
+
+/* ============================================================
+   MOSTRAR RESULTADO
+============================================================ */
+
+function showPrediction(result){
+
+  document
+    .getElementById("predictionBox")
+    .classList.remove("hidden");
+
+
+  document
+    .getElementById("predictionIcon")
+    .textContent =
+      iconFor(
+        result.name
+      );
+
+
+  document
+    .getElementById("predictionName")
+    .textContent =
+      result.name;
+
+
+  document
+    .getElementById("predictionConfidence")
+    .textContent =
+      `Confiança estimada: ${Math.round(result.confidence)}%`;
+
+
+  let sourceText =
+    "";
+
+
+  if(
+    result.sources &&
+    result.sources.length
+  ){
+
+    sourceText +=
+      "🔎 Fontes: " +
+      result.sources.join(" • ");
+
+  }
+
+
+  if(result.ocrText){
+
+    sourceText +=
+      `<br>🔤 Texto lido: "${esc(result.ocrText.slice(0,120))}"`;
+
+  }
+
+
+  if(
+    result.alternatives &&
+    result.alternatives.length
+  ){
+
+    sourceText +=
+      "<br>💡 Outras possibilidades: " +
+      result.alternatives
+        .map(
+          x => esc(x.name)
+        )
+        .join(", ");
+
+  }
+
+
+  document
+    .getElementById("predictionSources")
+    .innerHTML =
+      sourceText;
+
+}
+
+
+/* ============================================================
+   USAR PREDIÇÃO
+============================================================ */
 
 function usePrediction(){
-const name=lastPrediction?.name || "Alimento";
-openManualForm(name);
+
+  const name =
+    lastPrediction?.name ||
+    "Alimento";
+
+
+  openManualForm(
+    name
+  );
+
 }
 
-function openManualForm(name=""){
-document.getElementById("productForm").classList.remove("hidden");
-document.getElementById("foodName").value=name;
-const d=new Date(); d.setDate(d.getDate()+7);
-document.getElementById("expiryDate").value=d.toISOString().slice(0,10);
-document.getElementById("productForm").scrollIntoView({behavior:"smooth",block:"nearest"});
+
+/* ============================================================
+   FORM DO SCANNER
+============================================================ */
+
+function openManualForm(
+  name=""
+){
+
+  document
+    .getElementById("productForm")
+    .classList.remove("hidden");
+
+
+  document
+    .getElementById("foodName")
+    .value =
+      name;
+
+
+  const d =
+    new Date();
+
+
+  d.setDate(
+    d.getDate() + 7
+  );
+
+
+  document
+    .getElementById("expiryDate")
+    .value =
+      d.toISOString()
+       .slice(0,10);
+
+
+  document
+    .getElementById("productForm")
+    .scrollIntoView({
+
+      behavior:"smooth",
+
+      block:"nearest"
+
+    });
+
 }
+
+
+/* ============================================================
+   SALVAR ALIMENTO
+============================================================ */
 
 function saveFood(){
-const name=document.getElementById("foodName").value.trim();
-const expiry=document.getElementById("expiryDate").value;
-if(!name){alert("Informe o nome do alimento.");return;}
-if(!expiry){alert("Informe a data de validade.");return;}
-foods.unshift({id:Date.now(),name,icon:iconFor(name),expiry});
-saveDB(); render(); closeScanner(); showScreen("pantry");
+
+  const name =
+    document
+      .getElementById("foodName")
+      .value
+      .trim();
+
+
+  const expiry =
+    document
+      .getElementById("expiryDate")
+      .value;
+
+
+  if(!name){
+
+    alert(
+      "Informe o nome do alimento."
+    );
+
+    return;
+
+  }
+
+
+  if(!expiry){
+
+    alert(
+      "Informe a data de validade."
+    );
+
+    return;
+
+  }
+
+
+  foods.unshift({
+
+    id:Date.now(),
+
+    name,
+
+    icon:
+      iconFor(name),
+
+    expiry
+
+  });
+
+
+  saveDB();
+
+  render();
+
+  closeScanner();
+
+  showScreen(
+    "pantry"
+  );
+
 }
+
+
+/* ============================================================
+   CONSUMIR
+============================================================ */
 
 function consumeFood(id){
-const f=foods.find(x=>x.id===id);
-if(!f)return;
-if(confirm(`Consumir "${f.name}" e remover da despensa?`)){
-foods=foods.filter(x=>x.id!==id); saveDB(); render();
+
+  const f =
+    foods.find(
+      x => x.id === id
+    );
+
+
+  if(!f) return;
+
+
+  if(
+    confirm(
+      `Consumir "${f.name}" e remover da despensa?`
+    )
+  ){
+
+    foods =
+      foods.filter(
+        x => x.id !== id
+      );
+
+
+    saveDB();
+
+    render();
+
+  }
+
 }
-}
+
+
+/* ============================================================
+   BARCODE
+============================================================ */
 
 async function startBarcodeScanner(){
-await stopBarcodeScanner();
-try{
-html5Qr=new Html5Qrcode("reader");
-await html5Qr.start({facingMode:"environment"},{fps:10,qrbox:{width:280,height:140}},
-code=>barcodeFound(code),()=>{});
-scannerRunning=true;
-setStatus("Scanner de código ativo","Aponte para o código de barras.","🏷️");
-}catch(e){
-console.error(e);
-setStatus("Não foi possível ler o código","Você ainda pode usar a IA ou cadastrar manualmente.","⚠️");
+
+  await stopBarcodeScanner();
+
+
+  try{
+
+    html5Qr =
+      new Html5Qrcode(
+        "reader"
+      );
+
+
+    await html5Qr.start(
+
+      {
+        facingMode:"environment"
+      },
+
+      {
+        fps:10,
+
+        qrbox:{
+          width:280,
+          height:140
+        }
+
+      },
+
+      code =>
+        barcodeFound(code),
+
+      () => {}
+
+    );
+
+
+    scannerRunning = true;
+
+
+    setStatus(
+      "Scanner de código ativo",
+      "Aponte para o código de barras.",
+      "🏷️"
+    );
+
+
+  }catch(e){
+
+    console.error(e);
+
+
+    setStatus(
+      "Não foi possível ler o código",
+      "Você ainda pode usar a IA.",
+      "⚠️"
+    );
+
+  }
+
 }
-}
+
+
+/* ============================================================
+   PARAR BARCODE
+============================================================ */
 
 async function stopBarcodeScanner(){
-if(html5Qr && scannerRunning){
-try{await html5Qr.stop();await html5Qr.clear();}catch(e){}
+
+  if(
+    html5Qr &&
+    scannerRunning
+  ){
+
+    try{
+
+      await html5Qr.stop();
+
+      await html5Qr.clear();
+
+    }catch(e){}
+
+  }
+
+
+  html5Qr = null;
+
+  scannerRunning = false;
+
 }
-html5Qr=null;scannerRunning=false;
-}
+
+
+/* ============================================================
+   BARCODE ENCONTRADO
+============================================================ */
 
 async function barcodeFound(code){
-await stopBarcodeScanner();
-setStatus("Código encontrado",`Consultando produto ${code}...`,"🔎");
-try{
-const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json`);
-const data=await r.json();
-if(data.status===1){
-const p=data.product;
-const name=p.product_name_pt || p.product_name || "Produto identificado";
-openManualForm(name);
-setStatus("Produto encontrado","Confira a validade e salve.","✓");
-}else{
-openManualForm();
-setStatus("Produto não encontrado","Digite o nome manualmente.","⚠️");
-}
-}catch(e){
-openManualForm();
-setStatus("Sem resposta do banco","Digite o nome manualmente.","⚠️");
-}
+
+  await stopBarcodeScanner();
+
+
+  setStatus(
+    "Código encontrado",
+    `Consultando produto ${code}...`,
+    "🔎"
+  );
+
+
+  try{
+
+    const r =
+      await fetch(
+
+        OPEN_FOOD_FACTS_PRODUCT +
+        encodeURIComponent(code) +
+        ".json"
+
+      );
+
+
+    const data =
+      await r.json();
+
+
+    if(
+      data.status === 1
+    ){
+
+      const p =
+        data.product;
+
+
+      const name =
+        p.product_name_pt ||
+        p.product_name ||
+        "Produto identificado";
+
+
+      openManualForm(
+        name
+      );
+
+
+      setStatus(
+        "Produto encontrado",
+        "Confira a validade e salve.",
+        "✓"
+      );
+
+
+    }else{
+
+      openManualForm();
+
+
+      setStatus(
+        "Produto não encontrado",
+        "Digite o nome manualmente.",
+        "⚠️"
+      );
+
+    }
+
+
+  }catch(e){
+
+    console.error(e);
+
+
+    openManualForm();
+
+
+    setStatus(
+      "Sem resposta do banco",
+      "Digite o nome manualmente.",
+      "⚠️"
+    );
+
+  }
+
 }
 
-/* ===== RECEITAS — somente com o que está na despensa ===== */
-function matchIngredient(available, need){
-return available.some(a=>a.includes(need)||need.includes(a));
+
+/* ============================================================
+   RECEITAS
+============================================================ */
+
+function matchIngredient(
+  available,
+  need
+){
+
+  return available.some(
+    a =>
+      a.includes(need) ||
+      need.includes(a)
+  );
+
 }
+
 
 function openRecipes(){
-const available=foods.map(f=>f.name.toLowerCase());
-renderRecipeSections(available);
-showScreen("recipes");
+
+  const available =
+    foods.map(
+      f =>
+        f.name.toLowerCase()
+    );
+
+
+  renderRecipeSections(
+    available
+  );
+
+
+  showScreen(
+    "recipes"
+  );
+
 }
 
-function showFoodRecipes(name){
-showScreen("recipes");
-const available=foods.map(f=>f.name.toLowerCase());
-renderRecipeSections(available, name.toLowerCase());
+
+function showFoodRecipes(
+  name
+){
+
+  showScreen(
+    "recipes"
+  );
+
+
+  const available =
+    foods.map(
+      f =>
+        f.name.toLowerCase()
+    );
+
+
+  renderRecipeSections(
+    available,
+    name.toLowerCase()
+  );
+
 }
 
-function renderRecipeSections(available, filterWord=null){
-const list=document.getElementById("recipeList");
 
-if(!available.length){
-list.innerHTML=`<div class="text-center py-12"><div class="text-5xl">🍽️</div><p class="font-bold mt-3">Sua despensa está vazia.</p><p class="text-sm text-slate-400 mt-1">Adicione alimentos para ver sugestões de receitas.</p></div>`;
-return;
+function renderRecipeSections(
+  available,
+  filterWord=null
+){
+
+  const list =
+    document.getElementById(
+      "recipeList"
+    );
+
+
+  if(!available.length){
+
+    list.innerHTML = `
+
+      <div class="text-center py-12">
+
+        <div class="text-5xl">
+          🍽️
+        </div>
+
+        <p class="font-bold mt-3">
+          Sua despensa está vazia.
+        </p>
+
+        <p class="text-sm text-slate-400 mt-1">
+          Adicione alimentos para ver sugestões.
+        </p>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  let pool =
+    recipes;
+
+
+  if(filterWord){
+
+    pool =
+      recipes.filter(
+        r =>
+          r.needs.some(
+            n =>
+              filterWord.includes(n) ||
+              n.includes(filterWord)
+          )
+      );
+
+  }
+
+
+  const scored =
+    pool
+      .map(r => {
+
+        const have =
+          r.needs.filter(
+            n =>
+              matchIngredient(
+                available,
+                n
+              )
+          );
+
+
+        const missing =
+          r.needs.filter(
+            n =>
+              !matchIngredient(
+                available,
+                n
+              )
+          );
+
+
+        return {
+
+          ...r,
+
+          haveCount:
+            have.length,
+
+          missing
+
+        };
+
+      })
+      .filter(
+        r =>
+          r.haveCount > 0
+      );
+
+
+  const ready =
+    scored
+      .filter(
+        r =>
+          r.missing.length === 0
+      )
+      .sort(
+        (a,b) =>
+          b.haveCount -
+          a.haveCount
+      );
+
+
+  const partial =
+    scored
+      .filter(
+        r =>
+          r.missing.length > 0
+      )
+      .sort(
+        (a,b) =>
+          b.haveCount -
+          a.haveCount
+      );
+
+
+  let html = "";
+
+
+  if(ready.length){
+
+    html += `
+
+      <p class="text-xs font-bold text-green-700 uppercase tracking-wide">
+        ✓ Você pode fazer agora
+      </p>
+
+      ${ready
+        .map(
+          r =>
+            recipeCard(r)
+        )
+        .join("")}
+
+    `;
+
+  }
+
+
+  if(partial.length){
+
+    html += `
+
+      <p class="text-xs font-bold text-orange-500 uppercase tracking-wide mt-2">
+        Falta pouco
+      </p>
+
+      ${partial
+        .map(
+          r =>
+            recipeCard(r)
+        )
+        .join("")}
+
+    `;
+
+  }
+
+
+  if(
+    !ready.length &&
+    !partial.length
+  ){
+
+    html = `
+
+      <div class="text-center py-12">
+
+        <div class="text-5xl">
+          🤔
+        </div>
+
+        <p class="font-bold mt-3">
+          Nenhuma receita com o que você tem.
+        </p>
+
+        <p class="text-sm text-slate-400 mt-1">
+          Adicione mais alimentos à despensa.
+        </p>
+
+      </div>
+
+    `;
+
+  }
+
+
+  list.innerHTML =
+    html;
+
 }
 
-let pool=recipes;
-if(filterWord){
-pool=recipes.filter(r=>r.needs.some(n=>filterWord.includes(n)||n.includes(filterWord)));
-}
-
-const scored=pool.map(r=>{
-const have=r.needs.filter(n=>matchIngredient(available,n));
-const missing=r.needs.filter(n=>!matchIngredient(available,n));
-return {...r, haveCount:have.length, missing};
-}).filter(r=>r.haveCount>0);
-
-const ready=scored.filter(r=>r.missing.length===0).sort((a,b)=>b.haveCount-a.haveCount);
-const partial=scored.filter(r=>r.missing.length>0).sort((a,b)=>b.haveCount-a.haveCount);
-
-let html="";
-if(ready.length){
-html+=`<p class="text-xs font-bold text-green-700 uppercase tracking-wide">✓ Você pode fazer agora</p>${ready.map(r=>recipeCard(r)).join("")}`;
-}
-if(partial.length){
-html+=`<p class="text-xs font-bold text-orange-500 uppercase tracking-wide mt-2">Falta pouco</p>${partial.map(r=>recipeCard(r)).join("")}`;
-}
-if(!ready.length && !partial.length){
-html=`<div class="text-center py-12"><div class="text-5xl">🤔</div><p class="font-bold mt-3">Nenhuma receita com o que você tem.</p><p class="text-sm text-slate-400 mt-1">Adicione mais alimentos à despensa.</p></div>`;
-}
-list.innerHTML=html;
-}
 
 function recipeCard(r){
-const missingText = r.missing && r.missing.length ? `<p class="text-xs text-orange-500 font-semibold mt-1">Falta: ${r.missing.join(", ")}</p>` : "";
-return `<div class="bg-white rounded-2xl border border-slate-100 p-4">
-<div class="flex gap-4">
-<div class="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center text-3xl">${r.icon}</div>
-<div class="flex-1"><h4 class="font-extrabold">${esc(r.name)}</h4><p class="text-xs text-orange-500 font-semibold mt-1">⏱ ${r.time}</p><p class="text-xs text-slate-400 mt-2">Ingredientes: ${r.needs.join(", ")}</p>${missingText}</div>
-</div>
-</div>`;
+
+  const missingText =
+    r.missing &&
+    r.missing.length
+
+      ? `
+
+        <p class="text-xs text-orange-500 font-semibold mt-1">
+          Falta: ${r.missing.join(", ")}
+        </p>
+
+      `
+
+      : "";
+
+
+  return `
+
+    <div class="bg-white rounded-2xl border border-slate-100 p-4">
+
+      <div class="flex gap-4">
+
+        <div class="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center text-3xl">
+          ${r.icon}
+        </div>
+
+        <div class="flex-1">
+
+          <h4 class="font-extrabold">
+            ${esc(r.name)}
+          </h4>
+
+          <p class="text-xs text-orange-500 font-semibold mt-1">
+            ⏱ ${r.time}
+          </p>
+
+          <p class="text-xs text-slate-400 mt-2">
+            Ingredientes: ${r.needs.join(", ")}
+          </p>
+
+          ${missingText}
+
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
 }
 
-function esc(s){return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");}
-function attr(s){return String(s).replaceAll("\\","\\\\").replaceAll("'","\\'");}
+
+/* ============================================================
+   SEGURANÇA HTML
+============================================================ */
+
+function esc(s){
+
+  return String(s)
+
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+
+    .replaceAll(
+      "'",
+      "&#39;"
+    );
+
+}
+
+
+function attr(s){
+
+  return String(s)
+
+    .replaceAll(
+      "\\",
+      "\\\\"
+    )
+
+    .replaceAll(
+      "'",
+      "\\'"
+    );
+
+}
+
+
+/* ============================================================
+   INICIALIZAÇÃO
+============================================================ */
 
 render();
-setInterval(render,60000);
+
+
+setInterval(
+  render,
+  60000
+);
+
 </script>
+
 </body>
 </html>
