@@ -277,20 +277,14 @@
         </div>
       </button>
 
-      <div class="grid grid-cols-2 gap-3 mb-4">
-        <a id="apkDownloadBtn" href="sabor-validade.apk" download
-           class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-1 text-center">
-          <span class="text-2xl">📲</span>
-          <span class="font-bold text-sm">Baixar APK</span>
-          <span class="text-[11px] text-slate-400">Instalar no Android</span>
-        </a>
-        <button id="darkModeBtn" onclick="toggleDarkMode()"
-                class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-1 text-center">
-          <span class="text-2xl dm-icon">🌙</span>
-          <span class="font-bold text-sm dm-label">Modo escuro</span>
-          <span class="text-[11px] text-slate-400">Alternar tema</span>
-        </button>
-      </div>
+      <button id="darkModeBtn" onclick="toggleDarkMode()"
+              class="w-full mb-4 bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3">
+        <span class="text-2xl dm-icon">🌙</span>
+        <div class="text-left flex-1">
+          <p class="font-bold text-sm dm-label">Modo escuro</p>
+          <p class="text-[11px] text-slate-400">Alternar tema do app</p>
+        </div>
+      </button>
 
       <div class="bg-white rounded-2xl border border-slate-100 p-5">
         <p class="font-bold">🌿 Sobre o Sabor&Validade</p>
