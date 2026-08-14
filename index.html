@@ -16,6 +16,9 @@
   <meta name="mobile-web-app-capable" content="yes">
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -76,6 +79,41 @@
       justify-content: center; flex-shrink: 0; transition: all .15s ease;
     }
     .shop-check.checked { background: #16a34a; border-color: #16a34a; color: #fff; }
+
+    /* ===== MODO ESCURO ===== */
+    html.dark body { background:#0f1a14; color:#e7ece9; }
+    html.dark .bg-\[\#F7FAF8\] { background:#0f1a14 !important; }
+    html.dark .bg-\[\#F7FAF8\]\/95 { background:rgba(15,26,20,.95) !important; }
+    html.dark .bg-white { background:#182620 !important; }
+    html.dark .bg-white\/95 { background:rgba(24,38,32,.95) !important; }
+    html.dark .bg-slate-50 { background:#1d2b24 !important; }
+    html.dark .bg-slate-100 { background:#243328 !important; }
+    html.dark .bg-slate-900 { background:#0b120e !important; }
+    html.dark .border-slate-100 { border-color:#2a3a31 !important; }
+    html.dark .border-slate-200 { border-color:#33463b !important; }
+    html.dark .text-slate-800 { color:#e7ece9 !important; }
+    html.dark .text-slate-700 { color:#d7ded9 !important; }
+    html.dark .text-slate-600 { color:#c3ccc6 !important; }
+    html.dark .text-slate-500 { color:#a6b0a9 !important; }
+    html.dark .text-slate-400 { color:#8b968f !important; }
+    html.dark .text-slate-300 { color:#6f7b74 !important; }
+    html.dark .bg-green-50 { background:#132a1c !important; }
+    html.dark .bg-green-100 { background:#16351f !important; color:#7fe3a0 !important; }
+    html.dark .text-green-700 { color:#6bdc93 !important; }
+    html.dark .bg-blue-50 { background:#122233 !important; }
+    html.dark .text-blue-700, html.dark .text-blue-800, html.dark .text-blue-600 { color:#8ec2ff !important; }
+    html.dark .bg-amber-50 { background:#332612 !important; }
+    html.dark .text-amber-700, html.dark .text-amber-800 { color:#f3cd7a !important; }
+    html.dark .bg-orange-50 { background:#33220f !important; }
+    html.dark .bg-red-100 { background:#3a1414 !important; }
+    html.dark .text-red-600 { color:#ff8686 !important; }
+    html.dark .bg-orange-100 { background:#3a2712 !important; }
+    html.dark .text-orange-600, html.dark .text-orange-500 { color:#ffb066 !important; }
+    html.dark input {
+      background:#182620 !important; color:#e7ece9 !important; border-color:#33463b !important;
+    }
+    html.dark input::placeholder { color:#6f7b74 !important; }
+    html.dark #darkModeBtn .dm-icon { filter: drop-shadow(0 0 2px rgba(255,255,255,.3)); }
   </style>
 </head>
 
@@ -85,7 +123,7 @@
   <header class="sticky top-0 z-30 bg-[#F7FAF8]/95 backdrop-blur border-b border-slate-100">
     <div class="px-5 py-4 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <div class="w-10 h-10 rounded-2xl bg-green-100 flex items-center justify-center text-xl">🌿</div>
+        <img src="icon-192.png" alt="Sabor&Validade" class="w-10 h-10 rounded-2xl object-cover">
         <div>
           <h1 class="font-extrabold text-lg">Sabor<span class="text-green-600">&</span>Validade</h1>
           <p class="text-[11px] text-slate-400">Beta 3 • IA na câmera</p>
@@ -227,7 +265,7 @@
     <!-- PROFILE -->
     <section id="profile" class="screen pt-5">
       <div class="text-center py-6">
-        <div class="w-24 h-24 mx-auto rounded-full bg-green-100 flex items-center justify-center text-5xl">👤</div>
+        <img src="icon-192.png" alt="Sabor&Validade" class="w-24 h-24 mx-auto rounded-full object-cover">
         <h2 class="text-2xl font-extrabold mt-4">Meu Perfil</h2>
         <p class="text-sm text-slate-400">Sabor&Validade Beta 3</p>
       </div>
@@ -240,24 +278,28 @@
         </div>
       </button>
 
-      <div class="bg-white rounded-2xl border border-slate-100 p-5">
-        <p class="font-bold">Sobre o scanner IA</p>
-        <p class="text-sm text-slate-500 mt-2 leading-relaxed">
-          A Beta 3 combina visão computacional, OCR, banco de produtos e código de barras.
-          Para produtos embalados, o sistema tenta ler o texto da embalagem e procurar
-          correspondências no Open Food Facts. O resultado é uma sugestão e deve ser
-          conferido antes de salvar.
-        </p>
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <a id="apkDownloadBtn" href="sabor-validade.apk" download
+           class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-1 text-center">
+          <span class="text-2xl">📲</span>
+          <span class="font-bold text-sm">Baixar APK</span>
+          <span class="text-[11px] text-slate-400">Instalar no Android</span>
+        </a>
+        <button id="darkModeBtn" onclick="toggleDarkMode()"
+                class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-1 text-center">
+          <span class="text-2xl dm-icon">🌙</span>
+          <span class="font-bold text-sm dm-label">Modo escuro</span>
+          <span class="text-[11px] text-slate-400">Alternar tema</span>
+        </button>
       </div>
 
-      <div class="bg-blue-50 rounded-2xl p-5 mt-4">
-        <p class="font-bold text-blue-800">🧠 Como a IA funciona</p>
-        <p class="text-sm text-blue-700 mt-2 leading-relaxed">
-          1. A câmera captura a imagem.<br>
-          2. MobileNet procura objetos conhecidos.<br>
-          3. OCR tenta ler textos da embalagem.<br>
-          4. O sistema consulta produtos semelhantes.<br>
-          5. Os resultados são combinados.
+      <div class="bg-white rounded-2xl border border-slate-100 p-5">
+        <p class="font-bold">🌿 Sobre o Sabor&Validade</p>
+        <p class="text-sm text-slate-500 mt-2 leading-relaxed">
+          O Sabor&Validade é o seu assistente pessoal de despensa. Ele ajuda a acompanhar a
+          validade dos alimentos, sugere receitas com o que você já tem em casa e organiza
+          sua lista de compras automaticamente — tudo para facilitar o dia a dia e reduzir
+          o desperdício de comida.
         </p>
       </div>
 
@@ -1815,6 +1857,35 @@ function prevRecipeStep() {
 }
 
 /* ============================================================
+   MODO ESCURO
+============================================================ */
+
+function initDarkMode() {
+  const saved = localStorage.getItem("saborValidadeTheme");
+  if (saved === "dark") {
+    document.documentElement.classList.add("dark");
+  }
+  updateDarkModeButton();
+}
+
+function toggleDarkMode() {
+  document.documentElement.classList.toggle("dark");
+  const isDark = document.documentElement.classList.contains("dark");
+  localStorage.setItem("saborValidadeTheme", isDark ? "dark" : "light");
+  updateDarkModeButton();
+}
+
+function updateDarkModeButton() {
+  const btn = document.getElementById("darkModeBtn");
+  if (!btn) return;
+  const isDark = document.documentElement.classList.contains("dark");
+  const icon = btn.querySelector(".dm-icon");
+  const label = btn.querySelector(".dm-label");
+  if (icon) icon.textContent = isDark ? "☀️" : "🌙";
+  if (label) label.textContent = isDark ? "Modo claro" : "Modo escuro";
+}
+
+/* ============================================================
    PWA — INSTALAÇÃO E SERVICE WORKER
 ============================================================ */
 
@@ -1865,6 +1936,7 @@ document.addEventListener("keydown", e => {
    INICIALIZAÇÃO
 ============================================================ */
 
+initDarkMode();
 render();
 renderShopping();
 setInterval(render, 60000);
