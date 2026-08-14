@@ -1,7 +1,0 @@
-<div class="w-10 h-10 rounded-2xl overflow-hidden bg-green-100 flex items-center justify-center">
-  <img
-    src="./logo.png"
-    alt="Sabor&Validade"
-    class="w-full h-full object-cover"
-  >
-</div>
