@@ -108,7 +108,7 @@
     html.dark .bg-red-100 { background:#3a1414 !important; }
     html.dark .text-red-600 { color:#ff8686 !important; }
     html.dark .bg-orange-100 { background:#3a2712 !important; }
-    html.dark .text-orange-600, html.dark .text-orange-500 { color:#ffb066 !important; }
+    html.dark .text-orange-600, html.dark .text-orange-500, html.dark .text-orange-700 { color:#ffb066 !important; }
     html.dark input {
       background:#182620 !important; color:#e7ece9 !important; border-color:#33463b !important;
     }
@@ -128,7 +128,13 @@
           <h1 class="font-extrabold text-lg">Sabor<span class="text-green-600">&</span>Validade</h1>
         </div>
       </div>
-      <button onclick="showScreen('profile')" class="w-10 h-10 rounded-full bg-white border border-slate-200">👤</button>
+      <div class="flex items-center gap-2">
+        <button onclick="openExpiryAlertManual()" class="relative w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center">
+          <span class="text-lg">🔔</span>
+          <span id="notifyBellBadge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">0</span>
+        </button>
+        <button onclick="showScreen('profile')" class="w-10 h-10 rounded-full bg-white border border-slate-200">👤</button>
+      </div>
     </div>
   </header>
 
@@ -189,6 +195,15 @@
         </div>
         →
       </button>
+
+      <div id="antiWasteSection" class="hidden mt-5 bg-orange-50 border border-orange-100 rounded-2xl p-4">
+        <div class="flex items-center justify-between">
+          <p class="font-extrabold text-sm text-orange-700">♻️ Modo Anti-Desperdício</p>
+          <button onclick="openRecipes()" class="text-xs font-bold text-orange-600">Ver receitas ›</button>
+        </div>
+        <p class="text-xs text-orange-600 mt-1">Consuma estes primeiro:</p>
+        <div id="antiWasteList" class="flex gap-2 mt-3 overflow-x-auto pb-1"></div>
+      </div>
 
       <div class="flex items-center justify-between mt-7 mb-3">
         <h3 class="font-extrabold text-lg">Minha Despensa</h3>
@@ -269,24 +284,43 @@
         <p class="text-sm text-slate-400">Despensa inteligente com IA</p>
       </div>
 
-      <button id="installAppBtn" onclick="installApp()" class="hidden w-full bg-green-600 text-white rounded-2xl p-4 flex items-center gap-3 mb-4">
-        <span class="text-2xl">⬇️</span>
+      <div class="flex gap-3 mb-4">
+        <button id="installAppBtn" onclick="installApp()" class="hidden flex-1 bg-green-600 text-white rounded-2xl p-4 flex items-center gap-3">
+          <span class="text-2xl">⬇️</span>
+          <div class="text-left flex-1 min-w-0">
+            <p class="font-bold text-sm">Baixar app</p>
+            <p class="text-[11px] text-white/80">Instalar e usar offline</p>
+          </div>
+        </button>
+
+        <button id="darkModeBtn" onclick="toggleDarkMode()"
+                class="flex-1 bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3">
+          <span class="text-2xl dm-icon">🌙</span>
+          <div class="text-left flex-1 min-w-0">
+            <p class="font-bold text-sm dm-label">Modo escuro</p>
+            <p class="text-[11px] text-slate-400">Alternar tema</p>
+          </div>
+        </button>
+      </div>
+
+      <button onclick="showScreen('stats')" class="w-full bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3 mb-4">
+        <span class="text-2xl">📊</span>
         <div class="text-left flex-1">
-          <p class="font-bold">Instalar aplicativo</p>
-          <p class="text-xs text-white/80">Adicione à tela inicial e use offline</p>
+          <p class="font-bold text-sm">Minhas estatísticas</p>
+          <p class="text-[11px] text-slate-400">Consumo, desperdício e economia</p>
         </div>
+        <span class="text-xl text-slate-300">›</span>
       </button>
 
-      <button id="darkModeBtn" onclick="toggleDarkMode()"
-              class="w-full mb-4 bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3">
-        <span class="text-2xl dm-icon">🌙</span>
-        <div class="text-left flex-1">
-          <p class="font-bold text-sm dm-label">Modo escuro</p>
-          <p class="text-[11px] text-slate-400">Alternar tema do app</p>
+      <div class="bg-white rounded-2xl border border-slate-100 p-5 flex items-center justify-between">
+        <div>
+          <p class="font-bold text-sm">💰 Valor da despensa</p>
+          <p class="text-xs text-slate-400 mt-1">Soma dos itens com preço cadastrado</p>
         </div>
-      </button>
+        <p id="pantryValue" class="text-xl font-extrabold text-green-600">R$ 0,00</p>
+      </div>
 
-      <div class="bg-white rounded-2xl border border-slate-100 p-5">
+      <div class="bg-white rounded-2xl border border-slate-100 p-5 mt-4">
         <p class="font-bold">🌿 Sobre o Sabor&Validade</p>
         <p class="text-sm text-slate-500 mt-2 leading-relaxed">
           O Sabor&Validade é o seu assistente pessoal de despensa. Ele ajuda a acompanhar a
@@ -310,6 +344,41 @@
           Quando você consome o último item de um alimento na despensa, ele é adicionado
           automaticamente à lista de compras. Marque itens como comprados e adicione-os
           de volta à despensa em um toque.
+        </p>
+      </div>
+    </section>
+
+    <!-- ESTATÍSTICAS -->
+    <section id="stats" class="screen pt-5">
+      <button onclick="showScreen('profile')" class="text-sm font-semibold text-slate-500 mb-3">‹ Voltar ao perfil</button>
+      <p class="text-sm text-slate-400">Seu histórico</p>
+      <h2 class="text-2xl font-extrabold mt-1">Estatísticas 📊</h2>
+
+      <div class="grid grid-cols-2 gap-3 mt-5">
+        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+          <p id="statConsumido" class="text-2xl font-extrabold text-green-600">0</p>
+          <p class="text-xs text-slate-400">Alimentos consumidos</p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+          <p id="statDesperdicado" class="text-2xl font-extrabold text-red-500">0</p>
+          <p class="text-xs text-slate-400">Alimentos desperdiçados</p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+          <p id="statSalvo" class="text-2xl font-extrabold text-orange-500">0</p>
+          <p class="text-xs text-slate-400">Salvos perto do vencimento</p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+          <p id="statEconomia" class="text-xl font-extrabold text-green-600">R$ 0,00</p>
+          <p class="text-xs text-slate-400">Economia estimada</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 rounded-2xl p-5 mt-5">
+        <p class="text-sm text-slate-500 leading-relaxed">
+          "Consumidos" e "salvos perto do vencimento" contam cada unidade que você retirou da
+          despensa antes de vencer. "Desperdiçados" conta unidades retiradas depois de já
+          vencidas. A economia estimada soma o preço (quando informado) dos itens que você
+          não deixou vencer.
         </p>
       </div>
     </section>
@@ -408,10 +477,28 @@
 
       <div id="productForm" class="hidden mt-4">
         <label class="text-sm font-bold">Alimento</label>
-        <input id="foodName" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200" placeholder="Ex: Trento">
+        <input id="foodName" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200" placeholder="Ex: Trento" oninput="autoEstimateExpiry('food')">
 
-        <label class="text-sm font-bold block mt-4">Validade</label>
+        <div class="grid grid-cols-2 gap-3 mt-4">
+          <div>
+            <label class="text-sm font-bold">Quantidade</label>
+            <input id="foodQty" type="number" min="1" value="1" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200">
+          </div>
+          <div>
+            <label class="text-sm font-bold">Guardado em</label>
+            <select id="foodStorage" onchange="autoEstimateExpiry('food')" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200 bg-white">
+              <option value="despensa">Despensa</option>
+              <option value="geladeira">Geladeira</option>
+              <option value="congelador">Congelador</option>
+            </select>
+          </div>
+        </div>
+
+        <label class="text-sm font-bold block mt-4">Validade <span class="text-slate-400 font-normal">(sugestão da IA, edite se souber a data exata)</span></label>
         <input id="expiryDate" type="date" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200">
+
+        <label class="text-sm font-bold block mt-4">Preço <span class="text-slate-400 font-normal">(opcional)</span></label>
+        <input id="foodPrice" type="number" min="0" step="0.01" placeholder="R$ 0,00" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200">
 
         <button onclick="saveFood()" class="w-full mt-4 bg-green-600 text-white py-4 rounded-2xl font-bold">✓ Salvar na despensa</button>
       </div>
@@ -421,7 +508,7 @@
 
 <!-- CADASTRO MANUAL -->
 <div id="manualModal" class="hidden fixed inset-0 z-50 modal-bg flex items-end justify-center">
-  <div class="bg-white w-full max-w-md rounded-t-[32px] overflow-hidden">
+  <div class="bg-white w-full max-w-md rounded-t-[32px] overflow-hidden max-h-[92vh] overflow-y-auto">
     <div class="p-4 flex items-center justify-between">
       <div>
         <p class="text-xs text-slate-400">Cadastro manual</p>
@@ -431,10 +518,28 @@
     </div>
     <div class="p-5">
       <label class="text-sm font-bold">Alimento</label>
-      <input id="manualFoodName" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200" placeholder="Ex: Banana">
+      <input id="manualFoodName" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200" placeholder="Ex: Banana" oninput="autoEstimateExpiry('manual')">
 
-      <label class="text-sm font-bold block mt-4">Validade</label>
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <div>
+          <label class="text-sm font-bold">Quantidade</label>
+          <input id="manualFoodQty" type="number" min="1" value="1" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200">
+        </div>
+        <div>
+          <label class="text-sm font-bold">Guardado em</label>
+          <select id="manualFoodStorage" onchange="autoEstimateExpiry('manual')" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200 bg-white">
+            <option value="despensa">Despensa</option>
+            <option value="geladeira">Geladeira</option>
+            <option value="congelador">Congelador</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="text-sm font-bold block mt-4">Validade <span class="text-slate-400 font-normal">(sugestão da IA, edite se souber a data exata)</span></label>
       <input id="manualExpiryDate" type="date" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200">
+
+      <label class="text-sm font-bold block mt-4">Preço <span class="text-slate-400 font-normal">(opcional)</span></label>
+      <input id="manualFoodPrice" type="number" min="0" step="0.01" placeholder="R$ 0,00" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200">
 
       <button onclick="saveManualFood()" class="w-full mt-5 bg-green-600 text-white py-4 rounded-2xl font-bold">✓ Salvar na despensa</button>
     </div>
@@ -476,6 +581,23 @@
   </div>
 </div>
 
+<!-- AVISO DE VALIDADE -->
+<div id="expiryAlertModal" class="hidden fixed inset-0 z-50 modal-bg flex items-end justify-center">
+  <div class="bg-white w-full max-w-md rounded-t-[32px] overflow-hidden max-h-[85vh] overflow-y-auto">
+    <div class="p-5">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center text-2xl shrink-0">⏰</div>
+        <div>
+          <p class="text-xs text-slate-400">Aviso de validade</p>
+          <h3 class="font-extrabold text-lg">Fique de olho na despensa</h3>
+        </div>
+      </div>
+      <div id="expiryAlertList" class="space-y-2"></div>
+      <button onclick="closeExpiryAlert()" class="w-full mt-5 bg-green-600 text-white py-3 rounded-xl font-bold">Entendi</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ============================================================
    CONFIGURAÇÕES
@@ -490,6 +612,7 @@ const OPEN_FOOD_FACTS_PRODUCT = "https://world.openfoodfacts.org/api/v2/product/
 
 let foods = loadFoods();
 let shoppingList = loadShoppingList();
+let history = loadHistory();
 let model = null;
 let cameraStream = null;
 let html5Qr = null;
@@ -774,6 +897,38 @@ function saveDB() {
   localStorage.setItem("saborValidadeFoods", JSON.stringify(foods));
 }
 
+// Adiciona um alimento à despensa. Se já existir um item com o mesmo nome,
+// soma a quantidade em vez de criar um novo cartão (ex: Leite × 3).
+function addOrMergeFood({ name, expiry, qty, price, storage }) {
+  qty = Math.max(1, parseInt(qty, 10) || 1);
+  storage = storage || "despensa";
+
+  const normalized = normalizeText(name);
+  const existing = foods.find(f => normalizeText(f.name) === normalized);
+
+  if (existing) {
+    existing.qty = (existing.qty || 1) + qty;
+    // Mantém sempre a validade mais próxima (a que vence primeiro), por segurança.
+    if (expiry && (!existing.expiry || expiry < existing.expiry)) {
+      existing.expiry = expiry;
+    }
+    if (price) existing.price = Number(price);
+    existing.storage = storage;
+  } else {
+    foods.unshift({
+      id: Date.now(),
+      name,
+      icon: iconFor(name),
+      expiry,
+      qty,
+      price: price ? Number(price) : null,
+      storage
+    });
+  }
+
+  saveDB();
+}
+
 /* ============================================================
    BANCO LOCAL — LISTA DE COMPRAS
 ============================================================ */
@@ -789,6 +944,57 @@ function loadShoppingList() {
 
 function saveShoppingDB() {
   localStorage.setItem("saborValidadeShoppingList", JSON.stringify(shoppingList));
+}
+
+/* ============================================================
+   BANCO LOCAL — HISTÓRICO (ESTATÍSTICAS)
+============================================================ */
+
+function loadHistory() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("saborValidadeHistory") || "[]");
+    return Array.isArray(saved) ? saved : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistoryDB() {
+  localStorage.setItem("saborValidadeHistory", JSON.stringify(history));
+}
+
+// Registra 1 unidade consumida, classificando pelo status da validade
+// no momento do consumo: "salvo" (vence logo, evitou desperdício),
+// "consumido" (normal, dentro da validade) ou "desperdicado" (já vencido).
+function logConsumption(food) {
+  const status = dateStatus(food.expiry)[0];
+  let type = "consumido";
+  if (status === "Vencido") type = "desperdicado";
+  else if (status === "Vence logo") type = "salvo";
+
+  history.push({
+    date: todayISO(),
+    name: food.name,
+    type,
+    price: Number(food.price) || 0
+  });
+  saveHistoryDB();
+}
+
+function computeStats() {
+  let consumido = 0, desperdicado = 0, salvo = 0, economia = 0;
+
+  history.forEach(h => {
+    if (h.type === "desperdicado") {
+      desperdicado++;
+    } else {
+      consumido++;
+      if (h.type === "salvo") salvo++;
+      economia += h.price || 0;
+    }
+  });
+
+  return { consumido, desperdicado, salvo, economia };
 }
 
 /* ============================================================
@@ -848,6 +1054,66 @@ function iconFor(name) {
   if (n.includes("café") || n.includes("cafe") || n.includes("coffee")) return "☕";
 
   return "🥫";
+}
+
+/* ============================================================
+   IA DE CONSERVAÇÃO — estimativa de validade
+   Usada apenas como SUGESTÃO inicial na hora de cadastrar.
+   Se o usuário digitar ou corrigir a data manualmente (ex: lendo
+   a validade impressa na embalagem), essa data sempre tem prioridade.
+============================================================ */
+
+const CONSERVATION_DAYS = [
+  // [palavras-chave, despensa, geladeira, congelador]
+  [["banana"], 5, 8, 60],
+  [["maçã", "maca"], 14, 30, 240],
+  [["laranja"], 10, 21, 240],
+  [["limão", "limao"], 14, 30, 240],
+  [["abacaxi"], 4, 7, 240],
+  [["morango"], 2, 5, 240],
+  [["tomate"], 5, 10, 90],
+  [["cenoura"], 7, 21, 240],
+  [["batata"], 21, 30, 240],
+  [["brócolis", "brocolis"], 2, 5, 240],
+  [["pepino"], 4, 7, 90],
+  [["cebola"], 30, 60, 240],
+  [["alho"], 60, 90, 240],
+  [["abacate"], 4, 7, 240],
+  [["alface"], 2, 6, 30],
+  [["leite"], 1, 6, 60],
+  [["queijo"], 5, 15, 90],
+  [["ovo"], 7, 30, 0],
+  [["pão", "pao"], 4, 10, 90],
+  [["frango"], 1, 2, 120],
+  [["carne", "beef"], 1, 3, 120],
+  [["peixe"], 1, 2, 90],
+  [["arroz"], 365, 365, 365],
+  [["macarrão", "macarrao", "pasta"], 365, 365, 365],
+  [["iogurte"], 3, 15, 0],
+  [["suco"], 3, 7, 60],
+  [["chocolate", "trento", "kitkat"], 180, 180, 0],
+  [["biscoito", "oreo", "cookie"], 120, 120, 0]
+];
+
+// Retorna quantos dias esse alimento costuma durar no local de guarda informado.
+function estimateConservationDays(name, storage) {
+  const n = normalizeText(name);
+  const idx = storage === "geladeira" ? 2 : storage === "congelador" ? 3 : 1;
+
+  const hit = CONSERVATION_DAYS.find(row => row[0].some(k => n.includes(k)));
+  if (hit) {
+    const days = hit[idx];
+    return days > 0 ? days : hit[1]; // se "0" (não recomendado), usa o valor da despensa
+  }
+
+  // Alimento desconhecido: estimativa genérica por local de guarda.
+  if (storage === "geladeira") return 6;
+  if (storage === "congelador") return 90;
+  return 7;
+}
+
+function estimateExpiryDate(name, storage) {
+  return plusDaysISO(estimateConservationDays(name, storage));
 }
 
 function dateStatus(date) {
@@ -911,6 +1177,10 @@ function card(food) {
   const expiryText = food.expiry
     ? new Date(food.expiry + "T00:00:00").toLocaleDateString("pt-BR")
     : "Não informada";
+  const qty = food.qty || 1;
+  const priceText = food.price
+    ? `<span class="text-xs text-slate-400 mt-1 block">💰 ${(food.price * qty).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>`
+    : "";
 
   return `
     <div class="bg-white rounded-2xl border border-slate-100 p-4">
@@ -918,15 +1188,20 @@ function card(food) {
         <div class="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-3xl">${esc(food.icon || iconFor(food.name))}</div>
         <div class="flex-1 min-w-0">
           <div class="flex justify-between gap-2 items-start">
-            <h4 class="font-bold truncate">${esc(food.name)}</h4>
+            <h4 class="font-bold truncate">${esc(food.name)} ${qty > 1 ? `<span class="text-slate-400 font-semibold">×${qty}</span>` : ""}</h4>
             <span class="shrink-0 px-2 py-1 rounded-lg text-[10px] font-bold ${cls}">${status}</span>
           </div>
           <p class="text-xs text-slate-400 mt-1">Validade: ${expiryText}</p>
+          ${priceText}
         </div>
       </div>
-      <div class="flex gap-2 mt-4">
+      <div class="flex gap-2 mt-4 items-center">
         <button onclick="showFoodRecipes('${attr(food.name)}')" class="flex-1 bg-green-50 text-green-700 rounded-xl py-2.5 text-xs font-bold">🍳 Ver Receitas</button>
-        <button onclick="consumeFood(${Number(food.id)})" class="px-4 bg-slate-100 text-slate-600 rounded-xl py-2.5 text-xs font-bold">Consumir</button>
+        <div class="flex items-center gap-1 bg-slate-100 rounded-xl px-1">
+          <button onclick="consumeFood(${Number(food.id)})" class="w-8 h-9 rounded-lg text-slate-600 font-bold text-lg">−</button>
+          <span class="w-5 text-center text-sm font-bold">${qty}</span>
+          <button onclick="increaseQty(${Number(food.id)})" class="w-8 h-9 rounded-lg text-slate-600 font-bold text-lg">+</button>
+        </div>
       </div>
     </div>
   `;
@@ -951,16 +1226,58 @@ function render() {
 
   let exp = 0;
   let venc = 0;
+  let total = 0;
+  let pantryValue = 0;
 
   foods.forEach(f => {
+    const q = f.qty || 1;
     const s = dateStatus(f.expiry)[0];
-    if (s === "Vence logo") exp++;
-    if (s === "Vencido") venc++;
+    total += q;
+    if (s === "Vence logo") exp += q;
+    if (s === "Vencido") venc += q;
+    if (f.price) pantryValue += f.price * q;
   });
 
-  document.getElementById("totalItems").textContent = foods.length;
+  document.getElementById("totalItems").textContent = total;
   document.getElementById("expiringItems").textContent = exp;
   document.getElementById("expiredItems").textContent = venc;
+
+  const pantryValueEl = document.getElementById("pantryValue");
+  if (pantryValueEl) {
+    pantryValueEl.textContent = pantryValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  renderAntiWaste();
+  updateNotifyBellBadge();
+}
+
+/* ============================================================
+   MODO ANTI-DESPERDÍCIO
+============================================================ */
+
+function renderAntiWaste() {
+  const wrap = document.getElementById("antiWasteSection");
+  if (!wrap) return;
+
+  const { soon, expired } = getExpiryWarnings();
+  const items = [...expired, ...soon].sort((a, b) => (a.expiry || "").localeCompare(b.expiry || ""));
+
+  if (!items.length) {
+    wrap.classList.add("hidden");
+    return;
+  }
+
+  wrap.classList.remove("hidden");
+
+  document.getElementById("antiWasteList").innerHTML = items.slice(0, 4).map(f => {
+    const vencido = dateStatus(f.expiry)[0] === "Vencido";
+    return `
+      <div class="flex items-center gap-2 bg-white/70 rounded-xl px-3 py-2 shrink-0">
+        <span class="text-lg">${vencido ? "❌" : "⏰"}</span>
+        <span class="text-xs font-bold truncate max-w-[90px]">${esc(f.name)}</span>
+      </div>
+    `;
+  }).join("");
 }
 
 /* ============================================================
@@ -1068,13 +1385,12 @@ function addToPantryFromShopping(id) {
   const item = shoppingList.find(x => x.id === id);
   if (!item) return;
 
-  foods.unshift({
-    id: Date.now(),
+  addOrMergeFood({
     name: item.name,
-    icon: iconFor(item.name),
-    expiry: plusDaysISO(7)
+    expiry: estimateExpiryDate(item.name, "despensa"),
+    qty: 1,
+    storage: "despensa"
   });
-  saveDB();
 
   shoppingList = shoppingList.filter(x => x.id !== id);
   saveShoppingDB();
@@ -1107,7 +1423,18 @@ function showScreen(id) {
     x.classList.toggle("active", x.dataset.screen === id);
   });
 
+  if (id === "stats") renderStats();
+
   window.scrollTo(0, 0);
+}
+
+function renderStats() {
+  const { consumido, desperdicado, salvo, economia } = computeStats();
+  document.getElementById("statConsumido").textContent = consumido;
+  document.getElementById("statDesperdicado").textContent = desperdicado;
+  document.getElementById("statSalvo").textContent = salvo;
+  document.getElementById("statEconomia").textContent =
+    economia.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 /* ============================================================
@@ -1117,6 +1444,9 @@ function showScreen(id) {
 function openManualAdd() {
   document.getElementById("manualModal").classList.remove("hidden");
   document.getElementById("manualFoodName").value = "";
+  document.getElementById("manualFoodQty").value = 1;
+  document.getElementById("manualFoodPrice").value = "";
+  document.getElementById("manualFoodStorage").value = "despensa";
   document.getElementById("manualExpiryDate").value = plusDaysISO(7);
 
   setTimeout(() => document.getElementById("manualFoodName").focus(), 100);
@@ -1126,9 +1456,25 @@ function closeManualAdd() {
   document.getElementById("manualModal").classList.add("hidden");
 }
 
+// Sugere uma validade automaticamente com base no nome do alimento e no
+// local de guarda (IA de conservação). O usuário pode sempre sobrescrever.
+function autoEstimateExpiry(prefix) {
+  const nameEl = document.getElementById(prefix === "manual" ? "manualFoodName" : "foodName");
+  const storageEl = document.getElementById(prefix === "manual" ? "manualFoodStorage" : "foodStorage");
+  const dateEl = document.getElementById(prefix === "manual" ? "manualExpiryDate" : "expiryDate");
+
+  const name = nameEl.value.trim();
+  if (!name) return;
+
+  dateEl.value = estimateExpiryDate(name, storageEl.value);
+}
+
 function saveManualFood() {
   const name = document.getElementById("manualFoodName").value.trim();
   const expiry = document.getElementById("manualExpiryDate").value;
+  const qty = document.getElementById("manualFoodQty").value;
+  const price = document.getElementById("manualFoodPrice").value;
+  const storage = document.getElementById("manualFoodStorage").value;
 
   if (!name) {
     alert("Informe o nome do alimento.");
@@ -1140,14 +1486,8 @@ function saveManualFood() {
     return;
   }
 
-  foods.unshift({
-    id: Date.now(),
-    name,
-    icon: iconFor(name),
-    expiry
-  });
+  addOrMergeFood({ name, expiry, qty, price, storage });
 
-  saveDB();
   render();
   closeManualAdd();
   showScreen("pantry");
@@ -1644,7 +1984,10 @@ function openManualForm(name) {
   name = name || "";
   document.getElementById("productForm").classList.remove("hidden");
   document.getElementById("foodName").value = name;
-  document.getElementById("expiryDate").value = plusDaysISO(7);
+  document.getElementById("foodQty").value = 1;
+  document.getElementById("foodPrice").value = "";
+  document.getElementById("foodStorage").value = "despensa";
+  document.getElementById("expiryDate").value = name ? estimateExpiryDate(name, "despensa") : plusDaysISO(7);
 
   document.getElementById("productForm").scrollIntoView({
     behavior: "smooth",
@@ -1655,6 +1998,9 @@ function openManualForm(name) {
 function saveFood() {
   const name = document.getElementById("foodName").value.trim();
   const expiry = document.getElementById("expiryDate").value;
+  const qty = document.getElementById("foodQty").value;
+  const price = document.getElementById("foodPrice").value;
+  const storage = document.getElementById("foodStorage").value;
 
   if (!name) {
     alert("Informe o nome do alimento.");
@@ -1666,14 +2012,7 @@ function saveFood() {
     return;
   }
 
-  foods.unshift({
-    id: Date.now(),
-    name,
-    icon: iconFor(name),
-    expiry
-  });
-
-  saveDB();
+  addOrMergeFood({ name, expiry, qty, price, storage });
 
   // Se o alimento estava pendente na lista de compras, marca como resolvido.
   const normalized = normalizeText(name);
@@ -1804,13 +2143,29 @@ function consumeFood(id) {
   const f = foods.find(x => x.id === id);
   if (!f) return;
 
-  if (!confirm(`Consumir "${f.name}" e remover da despensa?`)) return;
+  const qty = f.qty || 1;
 
-  foods = foods.filter(x => x.id !== id);
+  if (qty <= 1) {
+    if (!confirm(`Consumir "${f.name}" e remover da despensa?`)) return;
+    logConsumption(f);
+    foods = foods.filter(x => x.id !== id);
+    saveDB();
+    render();
+    checkIfLastOfKind(f.name);
+  } else {
+    logConsumption(f);
+    f.qty = qty - 1;
+    saveDB();
+    render();
+  }
+}
+
+function increaseQty(id) {
+  const f = foods.find(x => x.id === id);
+  if (!f) return;
+  f.qty = (f.qty || 1) + 1;
   saveDB();
   render();
-
-  checkIfLastOfKind(f.name);
 }
 
 function checkIfLastOfKind(name) {
@@ -1875,23 +2230,28 @@ function renderRecipeSections(available, filterWord) {
     );
   }
 
+  const expiringNames = getExpiryWarnings().soon.map(f => f.name.toLowerCase());
+
   const scored = pool
     .map(r => {
       const have = r.needs.filter(n => matchIngredient(available, n));
       const missing = r.needs.filter(n => !matchIngredient(available, n));
-      return { ...r, haveCount: have.length, missing };
+      const expiringBoost = r.needs.filter(n => matchIngredient(expiringNames, n)).length;
+      return { ...r, haveCount: have.length, missing, expiringBoost };
     })
     .filter(r => r.haveCount > 0);
 
-  const byDifficultyThenHave = (a, b) => (a.level - b.level) || (b.haveCount - a.haveCount);
+  // Prioridade: 1º usa itens vencendo (anti-desperdício), 2º mais fácil, 3º mais completa.
+  const byPriority = (a, b) =>
+    (b.expiringBoost - a.expiringBoost) || (a.level - b.level) || (b.haveCount - a.haveCount);
 
   const ready = scored
     .filter(r => r.missing.length === 0)
-    .sort(byDifficultyThenHave);
+    .sort(byPriority);
 
   const partial = scored
     .filter(r => r.missing.length > 0)
-    .sort(byDifficultyThenHave);
+    .sort(byPriority);
 
   let html = "";
 
@@ -1928,6 +2288,9 @@ function recipeCard(r) {
     : "";
 
   const diff = DIFFICULTY[r.level] || DIFFICULTY[2];
+  const wasteBadge = r.expiringBoost > 0
+    ? `<span class="shrink-0 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-orange-100 text-orange-700">♻️ Aproveita o que vence</span>`
+    : "";
 
   return `
     <div class="recipe-card bg-white rounded-2xl border border-slate-100 p-4 cursor-pointer"
@@ -1938,6 +2301,7 @@ function recipeCard(r) {
           <div class="flex items-center gap-2 flex-wrap">
             <h4 class="font-extrabold">${esc(r.name)}</h4>
             <span class="shrink-0 px-2 py-0.5 rounded-lg text-[10px] font-bold ${diff.cls}">${diff.label}</span>
+            ${wasteBadge}
           </div>
           <p class="text-xs text-orange-500 font-semibold mt-1">⏱ ${esc(r.time)}</p>
           <p class="text-xs text-slate-400 mt-2">Ingredientes: ${r.needs.map(esc).join(", ")}</p>
@@ -2035,6 +2399,145 @@ function prevRecipeStep() {
 }
 
 /* ============================================================
+   NOTIFICAÇÕES DE VALIDADE
+============================================================ */
+
+function getExpiryWarnings() {
+  const soon = [];
+  const expired = [];
+
+  foods.forEach(f => {
+    const status = dateStatus(f.expiry)[0];
+    if (status === "Vence logo") soon.push(f);
+    else if (status === "Vencido") expired.push(f);
+  });
+
+  return { soon, expired };
+}
+
+function expiryWarningRow(f, kind) {
+  const expiryText = f.expiry
+    ? new Date(f.expiry + "T00:00:00").toLocaleDateString("pt-BR")
+    : "Sem validade";
+
+  const cls = kind === "expired"
+    ? "bg-red-50 text-red-600"
+    : "bg-orange-50 text-orange-600";
+  const icon = kind === "expired" ? "❌" : "⏰";
+
+  return `
+    <div class="flex items-center gap-3 ${cls} rounded-xl p-3">
+      <span class="text-xl">${icon}</span>
+      <div class="flex-1 min-w-0">
+        <p class="font-bold text-sm truncate">${esc(f.name)}</p>
+        <p class="text-xs opacity-80">Validade: ${expiryText}</p>
+      </div>
+    </div>
+  `;
+}
+
+function showExpiryAlert(soon, expired) {
+  const list = document.getElementById("expiryAlertList");
+
+  let html = "";
+
+  if (expired.length) {
+    html += `<p class="text-xs font-bold text-red-600 uppercase tracking-wide">Vencidos</p>`;
+    html += expired.map(f => expiryWarningRow(f, "expired")).join("");
+  }
+
+  if (soon.length) {
+    html += `<p class="text-xs font-bold text-orange-500 uppercase tracking-wide mt-3">Vencem logo</p>`;
+    html += soon.map(f => expiryWarningRow(f, "soon")).join("");
+  }
+
+  if (!expired.length && !soon.length) {
+    html = `
+      <div class="text-center py-8">
+        <div class="text-4xl">✅</div>
+        <p class="font-bold mt-2 text-sm">Tudo em dia por aqui!</p>
+        <p class="text-xs text-slate-400 mt-1">Nenhum alimento vencido ou vencendo logo.</p>
+      </div>
+    `;
+  }
+
+  list.innerHTML = html;
+  document.getElementById("expiryAlertModal").classList.remove("hidden");
+}
+
+function closeExpiryAlert() {
+  document.getElementById("expiryAlertModal").classList.add("hidden");
+}
+
+function openExpiryAlertManual() {
+  const { soon, expired } = getExpiryWarnings();
+  showExpiryAlert(soon, expired);
+}
+
+function updateNotifyBellBadge() {
+  const badge = document.getElementById("notifyBellBadge");
+  if (!badge) return;
+
+  const { soon, expired } = getExpiryWarnings();
+  const count = soon.length + expired.length;
+
+  if (count > 0) {
+    badge.textContent = count > 99 ? "99+" : count;
+    badge.classList.remove("hidden");
+  } else {
+    badge.classList.add("hidden");
+  }
+}
+
+function requestNotificationPermission() {
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "default") {
+    Notification.requestPermission().catch(() => {});
+  }
+}
+
+function sendSystemNotification(title, body) {
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+  try {
+    if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+      navigator.serviceWorker.getRegistration().then(reg => {
+        if (reg && reg.showNotification) {
+          reg.showNotification(title, { body, icon: "icon-192.png", badge: "icon-192.png" });
+        } else {
+          new Notification(title, { body, icon: "icon-192.png" });
+        }
+      }).catch(() => {
+        try { new Notification(title, { body, icon: "icon-192.png" }); } catch (e) {}
+      });
+    } else {
+      new Notification(title, { body, icon: "icon-192.png" });
+    }
+  } catch (e) {
+    console.warn("Não foi possível enviar notificação:", e);
+  }
+}
+
+// Avisa uma vez por dia (ao abrir o app) sobre alimentos vencidos ou vencendo logo.
+function checkAndNotifyExpirations() {
+  const { soon, expired } = getExpiryWarnings();
+  if (!soon.length && !expired.length) return;
+
+  const today = todayISO();
+  const lastCheck = localStorage.getItem("saborValidadeLastExpiryCheck");
+  if (lastCheck === today) return;
+
+  localStorage.setItem("saborValidadeLastExpiryCheck", today);
+
+  showExpiryAlert(soon, expired);
+
+  const parts = [];
+  if (expired.length) parts.push(`${expired.length} vencido(s)`);
+  if (soon.length) parts.push(`${soon.length} vencendo em breve`);
+  sendSystemNotification("Sabor&Validade", `Você tem ${parts.join(" e ")}. Confira sua despensa.`);
+}
+
+/* ============================================================
    MODO ESCURO
 ============================================================ */
 
@@ -2117,6 +2620,8 @@ document.addEventListener("keydown", e => {
 initDarkMode();
 render();
 renderShopping();
+requestNotificationPermission();
+checkAndNotifyExpirations();
 setInterval(render, 60000);
 </script>
 </body>
