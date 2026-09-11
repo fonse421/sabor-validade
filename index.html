@@ -89,7 +89,6 @@
     html.dark .bg-slate-50 { background:#1d2b24 !important; }
     html.dark .bg-slate-100 { background:#243328 !important; }
     html.dark .bg-slate-900 { background:#0b120e !important; }
-    html.dark .border-slate-100 { border-color:#2a3a31 !important; }
     html.dark .border-slate-200 { border-color:#33463b !important; }
     html.dark .text-slate-800 { color:#e7ece9 !important; }
     html.dark .text-slate-700 { color:#d7ded9 !important; }
@@ -116,13 +115,48 @@
     }
     html.dark input::placeholder { color:#6f7b74 !important; }
     html.dark #darkModeBtn .dm-icon { filter: drop-shadow(0 0 2px rgba(255,255,255,.3)); }
+
+    /* ===== EASTER EGG — COBRINHA ===== */
+    #snakeGameModal {
+      background: rgba(15,23,18,.82);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    #snakeCanvas {
+      width: min(88vw, 360px);
+      height: min(88vw, 360px);
+      max-width: 360px;
+      max-height: 360px;
+      image-rendering: pixelated;
+      touch-action: none;
+      border-radius: 18px;
+    }
+    .snake-control {
+      width: 58px;
+      height: 48px;
+      border-radius: 14px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      font-size: 22px;
+      font-weight: 800;
+      color: #334155;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .snake-control:active { transform: scale(.94); }
+    html.dark #snakeGameModal .bg-white { background:#182620 !important; }
+    html.dark .snake-control {
+      background:#243328;
+      border-color:#33463b;
+      color:#e7ece9;
+    }
   </style>
 </head>
 
 <body class="bg-[#F7FAF8] text-slate-800">
 <div class="max-w-md mx-auto min-h-screen relative">
 
-  <header class="sticky top-0 z-30 bg-[#F7FAF8]/95 backdrop-blur border-b border-slate-100">
+  <header class="sticky top-0 z-30 bg-[#F7FAF8]/95 backdrop-blur border-b border-slate-200">
     <div class="px-5 py-4 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <img src="icon-192.png" alt="Sabor&Validade" class="w-10 h-10 rounded-2xl object-cover">
@@ -147,75 +181,63 @@
       <p class="text-sm text-slate-400">Sua despensa</p>
       <h2 class="text-2xl font-extrabold mt-1">O que temos hoje?</h2>
 
-      <button onclick="openScanner()" class="w-full mt-5 rounded-3xl bg-green-600 text-white p-5 shadow-lg flex items-center gap-4 active:scale-[.98]">
-        <div class="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center text-3xl">📷</div>
-        <div class="text-left flex-1">
-          <p class="font-bold text-lg">Escanear com IA</p>
-          <p class="text-sm text-white/75">Foto + texto + código de barras</p>
-        </div>
-        <span class="text-2xl">›</span>
+      <button onclick="openScanner()" class="w-full mt-4 rounded-2xl bg-green-600 text-white p-4 flex items-center gap-3 active:scale-[.98]">
+        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-xl">📷</div>
+        <p class="font-semibold flex-1 text-left">Escanear com IA</p>
+        <span class="text-lg text-white/70">›</span>
       </button>
 
-      <button onclick="openManualAdd()" class="w-full mt-3 rounded-2xl bg-white border border-slate-200 p-4 flex items-center gap-3 active:scale-[.98]">
-        <div class="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center text-xl">✎</div>
-        <div class="text-left flex-1">
-          <p class="font-bold text-sm">Cadastrar manualmente</p>
-          <p class="text-xs text-slate-400">Adicione um alimento e a validade</p>
-        </div>
-        <span class="text-xl text-slate-300">›</span>
-      </button>
+      <div class="grid grid-cols-3 gap-2 mt-3">
+        <button onclick="openManualAdd()" class="bg-white border border-slate-200 rounded-2xl py-3 flex flex-col items-center gap-1.5 active:scale-[.98]">
+          <span class="text-lg">✎</span>
+          <span class="text-[11px] font-semibold text-slate-600">Manual</span>
+        </button>
+        <button onclick="showScreen('shopping')" class="relative bg-white border border-slate-200 rounded-2xl py-3 flex flex-col items-center gap-1.5 active:scale-[.98]">
+          <span id="homeShoppingBadge" class="hidden absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 rounded-full bg-orange-500 text-white text-[9px] font-bold flex items-center justify-center">0</span>
+          <span class="text-lg">🛒</span>
+          <span class="text-[11px] font-semibold text-slate-600">Compras</span>
+        </button>
+        <button onclick="openRecipes()" class="bg-white border border-slate-200 rounded-2xl py-3 flex flex-col items-center gap-1.5 active:scale-[.98]">
+          <span class="text-lg">🍳</span>
+          <span class="text-[11px] font-semibold text-slate-600">Receitas</span>
+        </button>
+      </div>
 
-      <div class="grid grid-cols-3 gap-3 mt-5">
-        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+      <div class="flex gap-2 mt-3 overflow-x-auto pb-1">
+        <button onclick="quickAddCommon('Banana', 'despensa')" class="shrink-0 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600">+ Banana</button>
+        <button onclick="quickAddCommon('Leite', 'geladeira')" class="shrink-0 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600">+ Leite</button>
+        <button onclick="quickAddCommon('Ovo', 'geladeira')" class="shrink-0 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600">+ Ovo</button>
+        <button onclick="quickAddCommon('Pão', 'despensa')" class="shrink-0 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600">+ Pão</button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 mt-3">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200">
           <p id="totalItems" class="text-2xl font-extrabold">0</p>
           <p class="text-xs text-slate-400">Itens</p>
         </div>
-        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200">
           <p id="expiringItems" class="text-2xl font-extrabold text-orange-500">0</p>
           <p class="text-xs text-slate-400">Vencem logo</p>
         </div>
-        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200">
           <p id="expiredItems" class="text-2xl font-extrabold text-red-500">0</p>
           <p class="text-xs text-slate-400">Vencidos</p>
         </div>
       </div>
 
-      <button onclick="showScreen('shopping')" class="w-full mt-3 bg-blue-50 text-blue-700 rounded-2xl p-4 flex items-center gap-3">
-        <span class="text-2xl">🛒</span>
-        <div class="text-left flex-1">
-          <p class="font-bold">Lista de compras</p>
-          <p class="text-xs text-blue-600" id="homeShoppingSummary">0 itens pendentes</p>
+      <div id="smartAssistantCard" class="hidden mt-3 bg-white border border-slate-200 rounded-2xl p-4">
+        <div class="flex items-start gap-3">
+          <div id="assistantIcon" class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-xl shrink-0">🧠</div>
+          <div class="flex-1 min-w-0">
+            <p id="assistantTitle" class="font-semibold text-sm text-slate-800"></p>
+            <p id="assistantText" class="text-xs text-slate-500 mt-1 leading-relaxed"></p>
+          </div>
         </div>
-        <span class="text-xl">›</span>
-      </button>
-
-      <button onclick="openRecipes()" class="w-full mt-3 bg-gradient-to-r from-orange-400 to-amber-400 text-white rounded-2xl p-4 flex items-center gap-3">
-        <span class="text-2xl">🍳</span>
-        <div class="text-left flex-1">
-          <p class="font-bold">O que cozinhar hoje?</p>
-          <p class="text-xs text-white/80">Receitas usando o que você já tem</p>
-        </div>
-        →
-      </button>
-
-      <div id="impactMiniCard" class="hidden mt-5 bg-white border border-slate-100 rounded-2xl p-4">
-        <div class="flex items-center justify-between">
-          <p class="font-extrabold text-sm">📈 Seu impacto</p>
-          <button onclick="showScreen('stats')" class="text-xs font-bold text-green-600">Ver tudo ›</button>
-        </div>
-        <p id="impactMiniText" class="text-xs text-slate-500 mt-2 leading-relaxed"></p>
+        <div id="assistantChips" class="hidden flex gap-2 mt-3 overflow-x-auto pb-1"></div>
+        <button id="assistantActionBtn" class="w-full mt-3 py-2.5 rounded-xl text-xs font-semibold"></button>
       </div>
 
-      <div id="antiWasteSection" class="hidden mt-5 bg-orange-50 border border-orange-100 rounded-2xl p-4">
-        <div class="flex items-center justify-between">
-          <p class="font-extrabold text-sm text-orange-700">♻️ Vencendo logo</p>
-          <button onclick="openRescueMode()" class="text-xs font-bold text-white bg-orange-500 px-3 py-1.5 rounded-lg">🚨 Modo Resgate</button>
-        </div>
-        <p class="text-xs text-orange-600 mt-1">Consuma estes primeiro:</p>
-        <div id="antiWasteList" class="flex gap-2 mt-3 overflow-x-auto pb-1"></div>
-      </div>
-
-      <div class="flex items-center justify-between mt-7 mb-3">
+      <div class="flex items-center justify-between mt-6 mb-3">
         <h3 class="font-extrabold text-lg">Minha Despensa</h3>
         <button onclick="showScreen('pantry')" class="text-sm font-semibold text-green-600">Ver todos</button>
       </div>
@@ -230,14 +252,14 @@
           <h2 class="text-2xl font-extrabold">Minha Despensa</h2>
         </div>
         <div class="flex gap-2 shrink-0">
-          <button onclick="openManualAdd()" class="bg-slate-100 text-slate-700 px-3 py-2 rounded-xl text-sm font-bold">✎ Manual</button>
-          <button onclick="openScanner()" class="bg-green-100 text-green-700 px-3 py-2 rounded-xl text-sm font-bold">📷 Escanear</button>
+          <button onclick="openManualAdd()" class="bg-white border border-slate-200 text-slate-600 px-3 py-2 rounded-xl text-sm font-semibold">✎ Manual</button>
+          <button onclick="openScanner()" class="bg-green-600 text-white px-3 py-2 rounded-xl text-sm font-semibold">📷 Escanear</button>
         </div>
       </div>
 
       <div class="flex gap-2 mb-5">
-        <button id="sortRecentBtn" onclick="setPantrySort('recent')" class="flex-1 py-2 rounded-xl text-xs font-bold bg-green-600 text-white">Mais recentes</button>
-        <button id="sortExpiryBtn" onclick="setPantrySort('expiry')" class="flex-1 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600">⏰ Vence primeiro</button>
+        <button id="sortRecentBtn" onclick="setPantrySort('recent')" class="flex-1 py-2 rounded-xl text-xs font-semibold bg-green-600 text-white">Mais recentes</button>
+        <button id="sortExpiryBtn" onclick="setPantrySort('expiry')" class="flex-1 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-500">Vence primeiro</button>
       </div>
 
       <div id="pantryFoodList" class="space-y-3"></div>
@@ -245,19 +267,15 @@
 
     <!-- SHOPPING LIST -->
     <section id="shopping" class="screen pt-5">
-      <div class="flex justify-between items-end mb-5 gap-2">
-        <div>
-          <p class="text-sm text-slate-400">Compras</p>
-          <h2 class="text-2xl font-extrabold">Lista de Compras</h2>
-        </div>
-      </div>
+      <p class="text-sm text-slate-400">Compras</p>
+      <h2 class="text-2xl font-extrabold mt-1">Lista de Compras</h2>
 
-      <div class="grid grid-cols-2 gap-3 mb-5">
-        <div class="bg-white rounded-2xl p-4 border border-slate-100">
-          <p id="shopPendingCount" class="text-2xl font-extrabold text-blue-500">0</p>
+      <div class="grid grid-cols-2 gap-3 mt-5 mb-5">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200">
+          <p id="shopPendingCount" class="text-2xl font-extrabold text-slate-800">0</p>
           <p class="text-xs text-slate-400">A comprar</p>
         </div>
-        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200">
           <p id="shopBoughtCount" class="text-2xl font-extrabold text-green-600">0</p>
           <p class="text-xs text-slate-400">Comprados</p>
         </div>
@@ -267,16 +285,16 @@
         <input id="newShoppingItem" placeholder="Adicionar item à lista..."
                class="flex-1 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
                onkeydown="if(event.key==='Enter') addShoppingItem()">
-        <button onclick="addShoppingItem()" class="bg-green-600 text-white w-12 rounded-xl font-bold text-xl">+</button>
+        <button onclick="addShoppingItem()" class="bg-green-600 text-white w-12 rounded-xl font-semibold text-xl">+</button>
       </div>
 
       <div id="shoppingPendingWrap">
-        <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">A comprar</p>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">A comprar</p>
         <div id="shoppingPendingList" class="space-y-2"></div>
       </div>
 
       <div id="shoppingBoughtWrap" class="mt-6">
-        <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Já comprados</p>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Já comprados</p>
         <div id="shoppingBoughtList" class="space-y-2"></div>
       </div>
     </section>
@@ -284,60 +302,68 @@
     <!-- RECIPES -->
     <section id="recipes" class="screen pt-5">
       <p class="text-sm text-slate-400">Sugestões</p>
-      <h2 class="text-2xl font-extrabold mt-1">Receitas 🍳</h2>
-      <div class="bg-green-100 rounded-3xl p-5 mt-5">
-        <p class="text-sm text-green-700 font-semibold">Receitas inteligentes</p>
-        <h3 class="font-extrabold text-xl mt-1">Toque numa receita para ver o passo a passo.</h3>
-      </div>
-      <div id="recipeList" class="space-y-4 mt-5"></div>
+      <h2 class="text-2xl font-extrabold mt-1">Receitas</h2>
+      <p class="text-sm text-slate-400 mt-1">Toque numa receita para ver o passo a passo.</p>
+      <div id="recipeList" class="space-y-3 mt-5"></div>
     </section>
 
     <!-- PROFILE -->
     <section id="profile" class="screen pt-5">
       <div class="text-center py-6">
-        <img src="icon-192.png" alt="Sabor&Validade" class="w-24 h-24 mx-auto rounded-full object-cover">
+        <img src="icon-192.png" alt="Sabor&Validade" class="w-20 h-20 mx-auto rounded-full object-cover">
         <h2 class="text-2xl font-extrabold mt-4">Meu Perfil</h2>
         <p class="text-sm text-slate-400">Despensa inteligente com IA</p>
       </div>
 
-      <div class="flex gap-3 mb-4">
+      <div class="flex gap-3 mb-3">
         <button id="installAppBtn" onclick="installApp()" class="hidden flex-1 bg-green-600 text-white rounded-2xl p-4 flex items-center gap-3">
-          <span class="text-2xl">⬇️</span>
+          <span class="text-xl">⬇</span>
           <div class="text-left flex-1 min-w-0">
-            <p class="font-bold text-sm">Baixar app</p>
+            <p class="font-semibold text-sm">Baixar app</p>
             <p class="text-[11px] text-white/80">Instalar e usar offline</p>
           </div>
         </button>
 
         <button id="darkModeBtn" onclick="toggleDarkMode()"
                 class="flex-1 bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3">
-          <span class="text-2xl dm-icon">🌙</span>
+          <span class="text-xl dm-icon">🌙</span>
           <div class="text-left flex-1 min-w-0">
-            <p class="font-bold text-sm dm-label">Modo escuro</p>
+            <p class="font-semibold text-sm dm-label">Modo escuro</p>
             <p class="text-[11px] text-slate-400">Alternar tema</p>
           </div>
         </button>
       </div>
 
-      <button onclick="showScreen('stats')" class="w-full bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3 mb-4">
-        <span class="text-2xl">📈</span>
+
+      <button id="snakeEasterEggBtn" onclick="openSnakeGame()"
+              class="hidden w-full bg-white border border-green-200 rounded-2xl p-4 flex items-center gap-3 mb-3 active:scale-[.98]">
+        <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-lg shrink-0">🐍</div>
         <div class="text-left flex-1">
-          <p class="font-bold text-sm">Painel de Impacto</p>
-          <p class="text-[11px] text-slate-400">Alimentos aproveitados, desperdício evitado e economia</p>
+          <p class="font-semibold text-sm text-slate-800">Easter egg desbloqueado!</p>
+          <p class="text-[11px] text-slate-400">Jogar Cobrinha</p>
         </div>
         <span class="text-xl text-slate-300">›</span>
       </button>
 
-      <div class="bg-white rounded-2xl border border-slate-100 p-5 flex items-center justify-between">
+      <button onclick="showScreen('stats')" class="w-full bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-lg shrink-0">📈</div>
+        <div class="text-left flex-1">
+          <p class="font-semibold text-sm">Painel de Impacto</p>
+          <p class="text-[11px] text-slate-400">Aproveitamento, desperdício evitado e economia</p>
+        </div>
+        <span class="text-xl text-slate-300">›</span>
+      </button>
+
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between mb-3">
         <div>
-          <p class="font-bold text-sm">💰 Valor da despensa</p>
+          <p class="font-semibold text-sm text-slate-800">Valor da despensa</p>
           <p class="text-xs text-slate-400 mt-1">Soma dos itens com preço cadastrado</p>
         </div>
-        <p id="pantryValue" class="text-xl font-extrabold text-green-600">R$ 0,00</p>
+        <p id="pantryValue" class="text-lg font-extrabold text-green-600">R$ 0,00</p>
       </div>
 
-      <div class="bg-white rounded-2xl border border-slate-100 p-5 mt-4">
-        <p class="font-bold">🌿 Sobre o Sabor&Validade</p>
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 mb-3">
+        <p class="font-semibold text-sm text-slate-800">Sobre o Sabor&Validade</p>
         <p class="text-sm text-slate-500 mt-2 leading-relaxed">
           O Sabor&Validade é o seu assistente pessoal de despensa. Ele ajuda a acompanhar a
           validade dos alimentos, sugere receitas com o que você já tem em casa e organiza
@@ -346,16 +372,16 @@
         </p>
       </div>
 
-      <div class="bg-amber-50 rounded-2xl p-5 mt-4">
-        <p class="font-bold text-amber-800">⚠️ Importante</p>
-        <p class="text-sm text-amber-700 mt-2 leading-relaxed">
+      <div class="bg-white border border-amber-200 rounded-2xl p-5 mb-3">
+        <p class="font-semibold text-sm text-amber-700">Importante</p>
+        <p class="text-sm text-slate-500 mt-2 leading-relaxed">
           A IA não garante a identificação correta. Sempre confira o nome do alimento
           e a data de validade antes de salvar.
         </p>
       </div>
 
-      <div class="bg-slate-50 rounded-2xl p-5 mt-4">
-        <p class="font-bold">🛒 Lista de compras inteligente</p>
+      <div class="bg-white rounded-2xl border border-slate-200 p-5">
+        <p class="font-semibold text-sm text-slate-800">Lista de compras inteligente</p>
         <p class="text-sm text-slate-500 mt-2 leading-relaxed">
           Quando você consome o último item de um alimento na despensa, ele é adicionado
           automaticamente à lista de compras. Marque itens como comprados e adicione-os
@@ -368,28 +394,28 @@
     <section id="stats" class="screen pt-5">
       <button onclick="showScreen('profile')" class="text-sm font-semibold text-slate-500 mb-3">‹ Voltar ao perfil</button>
       <p class="text-sm text-slate-400">Seu impacto</p>
-      <h2 class="text-2xl font-extrabold mt-1">Painel de Impacto 📈</h2>
+      <h2 class="text-2xl font-extrabold mt-1">Painel de Impacto</h2>
 
       <div class="grid grid-cols-2 gap-3 mt-5">
-        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200">
           <p id="statConsumido" class="text-2xl font-extrabold text-green-600">0</p>
           <p class="text-xs text-slate-400">Alimentos consumidos</p>
         </div>
-        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200">
           <p id="statDesperdicado" class="text-2xl font-extrabold text-red-500">0</p>
           <p class="text-xs text-slate-400">Alimentos desperdiçados</p>
         </div>
-        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200">
           <p id="statSalvo" class="text-2xl font-extrabold text-orange-500">0</p>
           <p class="text-xs text-slate-400">Salvos perto do vencimento</p>
         </div>
-        <div class="bg-white rounded-2xl p-4 border border-slate-100">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200">
           <p id="statEconomia" class="text-xl font-extrabold text-green-600">R$ 0,00</p>
           <p class="text-xs text-slate-400">Economia estimada</p>
         </div>
       </div>
 
-      <div class="bg-slate-50 rounded-2xl p-5 mt-5">
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 mt-5">
         <p class="text-sm text-slate-500 leading-relaxed">
           "Consumidos" e "salvos perto do vencimento" contam cada unidade que você retirou da
           despensa antes de vencer. "Desperdiçados" conta unidades retiradas depois de já
@@ -401,7 +427,7 @@
   </main>
 
   <!-- NAV -->
-  <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 bg-white/95 backdrop-blur border-t border-slate-100 safe-bottom">
+  <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 bg-white/95 backdrop-blur border-t border-slate-200 safe-bottom">
     <div class="grid grid-cols-5 h-[72px]">
       <button onclick="showScreen('home')" data-screen="home" class="nav-item active flex flex-col items-center justify-center gap-1">
         <span class="text-xl">🏠</span><span class="text-[10px] font-semibold">Início</span>
@@ -426,14 +452,14 @@
 
 <!-- SCANNER -->
 <div id="scannerModal" class="hidden fixed inset-0 z-50 modal-bg flex items-end justify-center">
-  <div class="bg-white w-full max-w-md rounded-t-[32px] overflow-hidden max-h-[96vh] overflow-y-auto">
+  <div class="bg-white w-full max-w-md rounded-t-[28px] overflow-hidden max-h-[96vh] overflow-y-auto">
 
     <div class="p-4 flex items-center justify-between">
       <div>
         <p class="text-xs text-slate-400">Scanner IA</p>
-        <h3 class="font-extrabold text-xl">Identificar alimento</h3>
+        <h3 class="font-bold text-lg">Identificar alimento</h3>
       </div>
-      <button onclick="closeScanner()" class="w-10 h-10 rounded-full bg-slate-100">✕</button>
+      <button onclick="closeScanner()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500">✕</button>
     </div>
 
     <div class="relative h-72 bg-black overflow-hidden">
@@ -442,7 +468,7 @@
       <div id="reader" class="absolute inset-0 hidden"></div>
 
       <div id="cameraOverlay" class="absolute inset-0 pointer-events-none">
-        <div class="absolute inset-[16%] border-2 border-white rounded-2xl"></div>
+        <div class="absolute inset-[16%] border-2 border-white/70 rounded-2xl"></div>
         <div class="scan-line absolute left-[16%] right-[16%] h-0.5 bg-green-400"></div>
         <div class="absolute bottom-4 left-0 right-0 text-center text-white text-xs">
           <span class="bg-black/50 px-3 py-2 rounded-full">Centralize o alimento no quadro</span>
@@ -453,55 +479,58 @@
     <div class="px-5 pt-4">
       <div id="aiStatus" class="bg-slate-50 rounded-2xl p-4 text-sm">
         <div class="flex gap-3 items-center">
-          <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center">⏳</div>
+          <div class="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-base">⏳</div>
           <div>
-            <p class="font-bold">Inicializando IA...</p>
-            <p class="text-xs text-slate-400 mt-1">Aguarde alguns segundos.</p>
+            <p class="font-semibold text-slate-800">Inicializando IA...</p>
+            <p class="text-xs text-slate-400 mt-0.5">Aguarde alguns segundos.</p>
           </div>
         </div>
       </div>
     </div>
 
     <div id="analysisProgress" class="hidden px-5 pt-3">
-      <div class="bg-slate-100 rounded-full h-2 overflow-hidden">
+      <div class="bg-slate-100 rounded-full h-1.5 overflow-hidden">
         <div id="analysisProgressBar" class="progress-bar bg-green-500 h-full rounded-full" style="width:0%"></div>
       </div>
       <p id="analysisProgressText" class="text-[11px] text-slate-400 mt-2 text-center">Preparando análise...</p>
     </div>
 
     <div class="p-5">
-      <div id="predictionBox" class="hidden bg-green-50 rounded-2xl p-4">
+      <div id="predictionBox" class="hidden bg-white border border-green-200 rounded-2xl p-4">
         <div class="flex items-center gap-3">
-          <div id="predictionIcon" class="text-4xl">🥫</div>
+          <div id="predictionIcon" class="text-3xl">🥫</div>
           <div class="flex-1">
             <p class="text-xs text-slate-400">Identificação sugerida</p>
-            <p id="predictionName" class="font-extrabold text-lg">Alimento</p>
-            <p id="predictionConfidence" class="text-xs text-green-700 mt-1">Confiança: --</p>
+            <p id="predictionName" class="font-semibold text-slate-800">Alimento</p>
+            <p id="predictionConfidence" class="text-xs text-green-700 mt-0.5">Confiança: --</p>
           </div>
         </div>
         <div id="predictionSources" class="mt-3 text-xs text-slate-500"></div>
-        <button onclick="usePrediction()" class="w-full mt-4 bg-green-600 text-white py-3 rounded-xl font-bold">✓ Usar identificação</button>
-        <button onclick="captureAndClassify()" class="w-full mt-2 text-xs text-slate-400 py-1">Não é isso? Analisar novamente</button>
+        <button onclick="quickSavePrediction()" class="w-full mt-4 bg-green-600 text-white py-3 rounded-xl font-semibold">⚡ Salvar rápido</button>
+        <button onclick="usePrediction()" class="w-full mt-2 text-xs text-slate-500 py-1">Conferir e ajustar antes de salvar</button>
+        <button onclick="captureAndClassify()" class="w-full text-xs text-slate-400 py-1">Não é isso? Analisar novamente</button>
       </div>
 
-      <div class="grid grid-cols-2 gap-3 mt-4">
-        <button onclick="captureAndClassify()" class="bg-green-100 text-green-700 py-3 rounded-xl font-bold text-sm">🤖 Analisar agora</button>
-        <button onclick="startBarcodeScanner()" class="bg-slate-100 text-slate-700 py-3 rounded-xl font-bold text-sm">🏷️ Código de barras</button>
+      <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mt-1 mb-2">Mais preciso primeiro</p>
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="startBarcodeScanner()" class="bg-green-600 text-white py-3 rounded-xl font-semibold text-sm">Código de barras</button>
+        <button onclick="captureAndClassify()" class="bg-slate-50 border border-slate-200 text-slate-700 py-3 rounded-xl font-semibold text-sm">IA (complemento)</button>
       </div>
+      <p class="text-[11px] text-slate-400 mt-2">A IA combina leitura da embalagem (OCR), banco de produtos e visão computacional — sempre com confirmação antes de salvar.</p>
 
-      <button onclick="openManualForm()" class="w-full mt-3 bg-white border border-slate-200 text-slate-600 py-3 rounded-xl font-bold text-sm">✎ Cadastrar manualmente</button>
+      <button onclick="openManualForm()" class="w-full mt-3 bg-white border border-slate-200 text-slate-600 py-3 rounded-xl font-semibold text-sm">Cadastrar manualmente</button>
 
       <div id="productForm" class="hidden mt-4">
-        <label class="text-sm font-bold">Alimento</label>
+        <label class="text-sm font-semibold text-slate-700">Alimento</label>
         <input id="foodName" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200" placeholder="Ex: Trento" oninput="autoEstimateExpiry('food')">
 
         <div class="grid grid-cols-2 gap-3 mt-4">
           <div>
-            <label class="text-sm font-bold">Quantidade</label>
+            <label class="text-sm font-semibold text-slate-700">Quantidade</label>
             <input id="foodQty" type="number" min="1" value="1" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200">
           </div>
           <div>
-            <label class="text-sm font-bold">Guardado em</label>
+            <label class="text-sm font-semibold text-slate-700">Guardado em</label>
             <select id="foodStorage" onchange="autoEstimateExpiry('food')" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200 bg-white">
               <option value="despensa">Despensa</option>
               <option value="geladeira">Geladeira</option>
@@ -510,13 +539,22 @@
           </div>
         </div>
 
-        <label class="text-sm font-bold block mt-4">Validade <span class="text-slate-400 font-normal">(sugestão da IA, edite se souber a data exata)</span></label>
+        <label class="flex items-center gap-2 mt-4 text-sm text-slate-700">
+          <input id="foodOpened" type="checkbox" onchange="toggleOpenedField('food'); autoEstimateExpiry('food')" class="w-4 h-4 rounded border-slate-300 text-green-600 focus:ring-green-200">
+          Já foi aberto
+        </label>
+        <div id="foodOpenedDateWrap" class="hidden mt-2">
+          <label class="text-sm font-semibold text-slate-700">Aberto em</label>
+          <input id="foodOpenedDate" type="date" onchange="autoEstimateExpiry('food')" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200">
+        </div>
+
+        <label class="text-sm font-semibold text-slate-700 block mt-4">Validade <span class="text-slate-400 font-normal">(sugestão da IA, edite se souber a data exata)</span></label>
         <input id="expiryDate" type="date" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200">
 
-        <label class="text-sm font-bold block mt-4">Preço <span class="text-slate-400 font-normal">(opcional)</span></label>
+        <label class="text-sm font-semibold text-slate-700 block mt-4">Preço <span class="text-slate-400 font-normal">(opcional)</span></label>
         <input id="foodPrice" type="number" min="0" step="0.01" placeholder="R$ 0,00" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200">
 
-        <button onclick="saveFood()" class="w-full mt-4 bg-green-600 text-white py-4 rounded-2xl font-bold">✓ Salvar na despensa</button>
+        <button onclick="saveFood()" class="w-full mt-4 bg-green-600 text-white py-4 rounded-2xl font-semibold">Salvar na despensa</button>
       </div>
     </div>
   </div>
@@ -524,25 +562,25 @@
 
 <!-- CADASTRO MANUAL -->
 <div id="manualModal" class="hidden fixed inset-0 z-50 modal-bg flex items-end justify-center">
-  <div class="bg-white w-full max-w-md rounded-t-[32px] overflow-hidden max-h-[92vh] overflow-y-auto">
+  <div class="bg-white w-full max-w-md rounded-t-[28px] overflow-hidden max-h-[92vh] overflow-y-auto">
     <div class="p-4 flex items-center justify-between">
       <div>
         <p class="text-xs text-slate-400">Cadastro manual</p>
-        <h3 class="font-extrabold text-xl">Adicionar alimento</h3>
+        <h3 class="font-bold text-lg">Adicionar alimento</h3>
       </div>
-      <button onclick="closeManualAdd()" class="w-10 h-10 rounded-full bg-slate-100">✕</button>
+      <button onclick="closeManualAdd()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500">✕</button>
     </div>
     <div class="p-5">
-      <label class="text-sm font-bold">Alimento</label>
+      <label class="text-sm font-semibold text-slate-700">Alimento</label>
       <input id="manualFoodName" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200" placeholder="Ex: Banana" oninput="autoEstimateExpiry('manual')">
 
       <div class="grid grid-cols-2 gap-3 mt-4">
         <div>
-          <label class="text-sm font-bold">Quantidade</label>
+          <label class="text-sm font-semibold text-slate-700">Quantidade</label>
           <input id="manualFoodQty" type="number" min="1" value="1" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200">
         </div>
         <div>
-          <label class="text-sm font-bold">Guardado em</label>
+          <label class="text-sm font-semibold text-slate-700">Guardado em</label>
           <select id="manualFoodStorage" onchange="autoEstimateExpiry('manual')" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200 bg-white">
             <option value="despensa">Despensa</option>
             <option value="geladeira">Geladeira</option>
@@ -551,47 +589,57 @@
         </div>
       </div>
 
-      <label class="text-sm font-bold block mt-4">Validade <span class="text-slate-400 font-normal">(sugestão da IA, edite se souber a data exata)</span></label>
+      <label class="flex items-center gap-2 mt-4 text-sm text-slate-700">
+        <input id="manualFoodOpened" type="checkbox" onchange="toggleOpenedField('manual'); autoEstimateExpiry('manual')" class="w-4 h-4 rounded border-slate-300 text-green-600 focus:ring-green-200">
+        Já foi aberto
+      </label>
+      <div id="manualFoodOpenedDateWrap" class="hidden mt-2">
+        <label class="text-sm font-semibold text-slate-700">Aberto em</label>
+        <input id="manualFoodOpenedDate" type="date" onchange="autoEstimateExpiry('manual')" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200">
+      </div>
+
+      <label class="text-sm font-semibold text-slate-700 block mt-4">Validade <span class="text-slate-400 font-normal">(sugestão da IA, edite se souber a data exata)</span></label>
       <input id="manualExpiryDate" type="date" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200">
 
-      <label class="text-sm font-bold block mt-4">Preço <span class="text-slate-400 font-normal">(opcional)</span></label>
+      <label class="text-sm font-semibold text-slate-700 block mt-4">Preço <span class="text-slate-400 font-normal">(opcional)</span></label>
       <input id="manualFoodPrice" type="number" min="0" step="0.01" placeholder="R$ 0,00" class="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200">
 
-      <button onclick="saveManualFood()" class="w-full mt-5 bg-green-600 text-white py-4 rounded-2xl font-bold">✓ Salvar na despensa</button>
+      <button onclick="saveManualFood()" class="w-full mt-5 bg-green-600 text-white py-4 rounded-2xl font-semibold">Salvar na despensa</button>
     </div>
   </div>
 </div>
 
 <!-- DETALHE DA RECEITA -->
 <div id="recipeDetailModal" class="hidden fixed inset-0 z-50 modal-bg flex items-end justify-center">
-  <div class="bg-white w-full max-w-md rounded-t-[32px] overflow-hidden max-h-[92vh] overflow-y-auto">
-    <div class="p-4 flex items-center justify-between border-b border-slate-100">
+  <div class="bg-white w-full max-w-md rounded-t-[28px] overflow-hidden max-h-[92vh] overflow-y-auto">
+    <div class="p-4 flex items-center justify-between border-b border-slate-200">
       <div>
-        <p class="text-xs text-slate-400" id="recipeDetailTime">⏱ --</p>
-        <h3 class="font-extrabold text-xl" id="recipeDetailName">Receita</h3>
+        <p class="text-xs text-slate-400" id="recipeDetailTime">--</p>
+        <h3 class="font-bold text-lg" id="recipeDetailName">Receita</h3>
       </div>
-      <button onclick="closeRecipeDetail()" class="w-10 h-10 rounded-full bg-slate-100">✕</button>
+      <button onclick="closeRecipeDetail()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500">✕</button>
     </div>
 
     <div class="p-5">
       <div class="flex justify-center gap-1.5 mb-5" id="recipeStepDots"></div>
 
-      <div class="bg-orange-50 rounded-3xl p-8 flex flex-col items-center text-center min-h-[220px] justify-center">
-        <div id="recipeStepIcon" class="text-6xl mb-4">🍳</div>
-        <p id="recipeStepText" class="text-base font-semibold text-slate-700 leading-relaxed"></p>
+      <div class="bg-slate-50 border border-slate-200 rounded-2xl p-8 flex flex-col items-center text-center min-h-[220px] justify-center">
+        <div id="recipeStepIcon" class="text-5xl mb-4">🍳</div>
+        <p id="recipeStepText" class="text-base font-medium text-slate-700 leading-relaxed"></p>
       </div>
 
       <p id="recipeStepCounter" class="text-center text-xs text-slate-400 mt-3">Passo 1 de 4</p>
 
       <div class="grid grid-cols-2 gap-3 mt-5">
-        <button onclick="prevRecipeStep()" id="recipeStepPrevBtn" class="bg-slate-100 text-slate-600 py-3 rounded-xl font-bold text-sm">‹ Anterior</button>
-        <button onclick="nextRecipeStep()" id="recipeStepNextBtn" class="bg-green-600 text-white py-3 rounded-xl font-bold text-sm">Próximo ›</button>
+        <button onclick="prevRecipeStep()" id="recipeStepPrevBtn" class="bg-slate-100 text-slate-600 py-3 rounded-xl font-semibold text-sm">‹ Anterior</button>
+        <button onclick="nextRecipeStep()" id="recipeStepNextBtn" class="bg-green-600 text-white py-3 rounded-xl font-semibold text-sm">Próximo ›</button>
       </div>
 
-      <div class="mt-5 pt-5 border-t border-slate-100">
-        <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Ingredientes</p>
+      <div class="mt-5 pt-5 border-t border-slate-200">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Ingredientes</p>
         <p id="recipeDetailIngredients" class="text-sm text-slate-600"></p>
-        <p id="recipeDetailMissing" class="text-xs text-orange-500 font-semibold mt-1"></p>
+        <p id="recipeDetailMissing" class="text-xs text-orange-600 font-medium mt-1"></p>
+        <button id="recipeDetailMissingBtn" onclick="addRecipeMissingToShopping()" class="hidden w-full mt-3 bg-slate-50 border border-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-semibold">Adicionar faltantes à lista</button>
       </div>
     </div>
   </div>
@@ -599,40 +647,84 @@
 
 <!-- AVISO DE VALIDADE -->
 <div id="expiryAlertModal" class="hidden fixed inset-0 z-50 modal-bg flex items-end justify-center">
-  <div class="bg-white w-full max-w-md rounded-t-[32px] overflow-hidden max-h-[85vh] overflow-y-auto">
+  <div class="bg-white w-full max-w-md rounded-t-[28px] overflow-hidden max-h-[85vh] overflow-y-auto">
     <div class="p-5">
       <div class="flex items-center gap-3 mb-4">
-        <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center text-2xl shrink-0">⏰</div>
+        <div class="w-11 h-11 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-xl shrink-0">⏰</div>
         <div>
           <p class="text-xs text-slate-400">Aviso de validade</p>
-          <h3 class="font-extrabold text-lg">Fique de olho na despensa</h3>
+          <h3 class="font-bold text-lg">Fique de olho na despensa</h3>
         </div>
       </div>
       <div id="expiryAlertList" class="space-y-2"></div>
-      <button onclick="closeExpiryAlert()" class="w-full mt-5 bg-green-600 text-white py-3 rounded-xl font-bold">Entendi</button>
+      <button onclick="closeExpiryAlert()" class="w-full mt-5 bg-green-600 text-white py-3 rounded-xl font-semibold">Entendi</button>
     </div>
   </div>
 </div>
 
 <!-- MODO RESGATE -->
 <div id="rescueModal" class="hidden fixed inset-0 z-50 modal-bg flex items-end justify-center">
-  <div class="bg-white w-full max-w-md rounded-t-[32px] overflow-hidden max-h-[90vh] overflow-y-auto">
+  <div class="bg-white w-full max-w-md rounded-t-[28px] overflow-hidden max-h-[90vh] overflow-y-auto">
     <div class="p-5">
       <div class="flex items-center gap-3 mb-4">
-        <div class="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center text-2xl shrink-0">🚨</div>
+        <div class="w-11 h-11 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-xl shrink-0">⏳</div>
         <div>
           <p class="text-xs text-slate-400">Prioridade máxima</p>
-          <h3 class="font-extrabold text-lg">Modo Resgate</h3>
+          <h3 class="font-bold text-lg">Modo Resgate</h3>
         </div>
       </div>
 
-      <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Plano dos próximos dias</p>
+      <p id="rescueHeadline" class="text-sm font-semibold text-slate-800 mb-4"></p>
+
+      <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Plano dos próximos dias</p>
       <div id="rescuePlan" class="space-y-2 mb-5"></div>
 
-      <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Receitas que combinam vários desses itens</p>
+      <p id="rescueRecipesLabel" class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2"></p>
       <div id="rescueRecipes" class="space-y-3"></div>
 
-      <button onclick="closeRescueMode()" class="w-full mt-5 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold">Fechar</button>
+      <button onclick="closeRescueMode()" class="w-full mt-5 bg-slate-100 text-slate-600 py-3 rounded-xl font-semibold">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- EASTER EGG — JOGO DA COBRINHA -->
+<div id="snakeGameModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
+  <div class="bg-white w-full max-w-md rounded-[28px] overflow-hidden shadow-2xl">
+    <div class="p-4 flex items-center justify-between border-b border-slate-200">
+      <div>
+        <p class="text-xs text-green-600 font-semibold">Easter egg 🐍</p>
+        <h3 class="font-extrabold text-lg">Cobrinha</h3>
+      </div>
+      <button onclick="closeSnakeGame()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500">✕</button>
+    </div>
+
+    <div class="p-5">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-sm text-slate-500">Pontuação</p>
+        <p id="snakeScore" class="text-xl font-extrabold text-green-600">0</p>
+      </div>
+
+      <div class="flex justify-center">
+        <canvas id="snakeCanvas" width="360" height="360"></canvas>
+      </div>
+
+      <p id="snakeStatus" class="text-center text-xs text-slate-400 mt-3">
+        Use as setas, WASD ou os controles abaixo.
+      </p>
+
+      <div class="mt-4 grid grid-cols-3 gap-2 max-w-[190px] mx-auto">
+        <span></span>
+        <button class="snake-control" onclick="snakeChangeDirection('up')" aria-label="Cima">▲</button>
+        <span></span>
+        <button class="snake-control" onclick="snakeChangeDirection('left')" aria-label="Esquerda">◀</button>
+        <button class="snake-control" onclick="snakeChangeDirection('down')" aria-label="Baixo">▼</button>
+        <button class="snake-control" onclick="snakeChangeDirection('right')" aria-label="Direita">▶</button>
+      </div>
+
+      <button id="snakeRestartBtn" onclick="startSnakeGame()"
+              class="w-full mt-4 bg-green-600 text-white py-3 rounded-xl font-semibold">
+        Reiniciar
+      </button>
     </div>
   </div>
 </div>
@@ -668,9 +760,9 @@ let deferredInstallPrompt = null;
 ============================================================ */
 
 const DIFFICULTY = {
-  1: { label: "Fácil", cls: "bg-green-100 text-green-700" },
-  2: { label: "Médio", cls: "bg-amber-100 text-amber-700" },
-  3: { label: "Difícil", cls: "bg-red-100 text-red-700" }
+  1: { label: "Fácil", cls: "border border-green-200 text-green-700" },
+  2: { label: "Médio", cls: "border border-amber-200 text-amber-700" },
+  3: { label: "Difícil", cls: "border border-red-200 text-red-700" }
 };
 
 const recipes = [
@@ -1053,6 +1145,14 @@ function plusDaysISO(days) {
   return d.toISOString().slice(0, 10);
 }
 
+// Soma dias a partir de uma data específica (ex: data de abertura), não de hoje.
+function addDaysToISO(dateStr, days) {
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() + days);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 10);
+}
+
 function iconFor(name) {
   const n = String(name).toLowerCase();
 
@@ -1135,24 +1235,36 @@ const CONSERVATION_DAYS = [
 ];
 
 // Retorna quantos dias esse alimento costuma durar no local de guarda informado.
-function estimateConservationDays(name, storage) {
+// "opened" reduz a estimativa, já que alimentos abertos deterioram mais rápido.
+function estimateConservationDays(name, storage, opened) {
   const n = normalizeText(name);
   const idx = storage === "geladeira" ? 2 : storage === "congelador" ? 3 : 1;
 
   const hit = CONSERVATION_DAYS.find(row => row[0].some(k => n.includes(k)));
+  let days;
   if (hit) {
-    const days = hit[idx];
-    return days > 0 ? days : hit[1]; // se "0" (não recomendado), usa o valor da despensa
+    const raw = hit[idx];
+    days = raw > 0 ? raw : hit[1]; // se "0" (não recomendado), usa o valor da despensa
+  } else {
+    // Alimento desconhecido: estimativa genérica por local de guarda.
+    days = storage === "geladeira" ? 6 : storage === "congelador" ? 90 : 7;
   }
 
-  // Alimento desconhecido: estimativa genérica por local de guarda.
-  if (storage === "geladeira") return 6;
-  if (storage === "congelador") return 90;
-  return 7;
+  if (opened) {
+    const factor = storage === "congelador" ? 0.7 : 0.35;
+    days = Math.max(1, Math.round(days * factor));
+  }
+
+  return days;
 }
 
-function estimateExpiryDate(name, storage) {
-  return plusDaysISO(estimateConservationDays(name, storage));
+// Se já foi aberto, a contagem passa a valer a partir da data de abertura
+// (e não da data de hoje). A validade impressa na embalagem, quando o
+// usuário a digita manualmente, sempre tem prioridade sobre esta estimativa.
+function estimateExpiryDate(name, storage, opened, openedDate) {
+  const days = estimateConservationDays(name, storage, opened);
+  const base = (opened && openedDate) ? openedDate : todayISO();
+  return addDaysToISO(base, days);
 }
 
 function dateStatus(date) {
@@ -1212,35 +1324,52 @@ function showToast(text, icon) {
 ============================================================ */
 
 function card(food) {
-  const [status, cls] = dateStatus(food.expiry);
+  const [status] = dateStatus(food.expiry);
   const expiryText = food.expiry
     ? new Date(food.expiry + "T00:00:00").toLocaleDateString("pt-BR")
     : "Não informada";
   const qty = food.qty || 1;
   const priceText = food.price
-    ? `<span class="text-xs text-slate-400 mt-1 block">💰 ${(food.price * qty).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>`
+    ? `<span class="text-xs text-slate-400 mt-1 block">${(food.price * qty).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>`
     : "";
 
+  const dot =
+    status === "Vencido" ? "bg-red-500" :
+    status === "Vence logo" ? "bg-orange-500" :
+    status === "Sem validade" ? "bg-slate-300" : "bg-green-500";
+  const statusText =
+    status === "Vencido" ? "text-red-600" :
+    status === "Vence logo" ? "text-orange-600" :
+    status === "Sem validade" ? "text-slate-400" : "text-green-700";
+
+  const actionsRow = status === "Vencido"
+    ? `<button onclick="discardFood(${Number(food.id)})" class="w-full bg-red-50 text-red-600 rounded-xl py-2.5 text-xs font-semibold">🗑 Descartar${qty > 1 ? ` (${qty})` : ""}</button>`
+    : `
+      <button onclick="showFoodRecipes('${attr(food.name)}')" class="flex-1 bg-slate-50 text-slate-600 rounded-xl py-2.5 text-xs font-semibold">Ver receitas</button>
+      <div class="flex items-center gap-1 bg-slate-50 rounded-xl px-1">
+        <button onclick="consumeFood(${Number(food.id)})" class="w-8 h-9 rounded-lg text-slate-500 font-semibold text-base">−</button>
+        <span class="w-5 text-center text-sm font-semibold text-slate-700">${qty}</span>
+        <button onclick="increaseQty(${Number(food.id)})" class="w-8 h-9 rounded-lg text-slate-500 font-semibold text-base">+</button>
+      </div>
+    `;
+
   return `
-    <div class="bg-white rounded-2xl border border-slate-100 p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 p-4">
       <div class="flex items-center gap-3">
-        <div class="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-3xl">${esc(food.icon || iconFor(food.name))}</div>
+        <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-2xl shrink-0">${esc(food.icon || iconFor(food.name))}</div>
         <div class="flex-1 min-w-0">
           <div class="flex justify-between gap-2 items-start">
-            <h4 class="font-bold truncate">${esc(food.name)} ${qty > 1 ? `<span class="text-slate-400 font-semibold">×${qty}</span>` : ""}</h4>
-            <span class="shrink-0 px-2 py-1 rounded-lg text-[10px] font-bold ${cls}">${status}</span>
+            <h4 class="font-semibold text-slate-800 truncate">${esc(food.name)} ${qty > 1 ? `<span class="text-slate-400 font-normal">×${qty}</span>` : ""}</h4>
+            <span class="shrink-0 flex items-center gap-1.5 text-[11px] font-semibold ${statusText}">
+              <span class="w-1.5 h-1.5 rounded-full ${dot}"></span>${status}
+            </span>
           </div>
-          <p class="text-xs text-slate-400 mt-1">Validade: ${expiryText}</p>
+          <p class="text-xs text-slate-400 mt-0.5">Validade: ${expiryText}</p>
           ${priceText}
         </div>
       </div>
-      <div class="flex gap-2 mt-4 items-center">
-        <button onclick="showFoodRecipes('${attr(food.name)}')" class="flex-1 bg-green-50 text-green-700 rounded-xl py-2.5 text-xs font-bold">🍳 Ver Receitas</button>
-        <div class="flex items-center gap-1 bg-slate-100 rounded-xl px-1">
-          <button onclick="consumeFood(${Number(food.id)})" class="w-8 h-9 rounded-lg text-slate-600 font-bold text-lg">−</button>
-          <span class="w-5 text-center text-sm font-bold">${qty}</span>
-          <button onclick="increaseQty(${Number(food.id)})" class="w-8 h-9 rounded-lg text-slate-600 font-bold text-lg">+</button>
-        </div>
+      <div class="flex gap-2 mt-3 items-center">
+        ${actionsRow}
       </div>
     </div>
   `;
@@ -1250,7 +1379,7 @@ function empty() {
   return `
     <div class="text-center py-12">
       <div class="text-5xl">🥕</div>
-      <p class="font-bold mt-3">Nenhum alimento salvo.</p>
+      <p class="font-semibold text-slate-700 mt-3">Nenhum alimento salvo.</p>
       <p class="text-sm text-slate-400 mt-1">Escaneie ou cadastre manualmente para adicionar.</p>
     </div>
   `;
@@ -1262,9 +1391,9 @@ function setPantrySort(mode) {
   pantrySortMode = mode;
 
   document.getElementById("sortRecentBtn").className =
-    "flex-1 py-2 rounded-xl text-xs font-bold " + (mode === "recent" ? "bg-green-600 text-white" : "bg-slate-100 text-slate-600");
+    "flex-1 py-2 rounded-xl text-xs font-semibold " + (mode === "recent" ? "bg-green-600 text-white" : "bg-white border border-slate-200 text-slate-500");
   document.getElementById("sortExpiryBtn").className =
-    "flex-1 py-2 rounded-xl text-xs font-bold " + (mode === "expiry" ? "bg-green-600 text-white" : "bg-slate-100 text-slate-600");
+    "flex-1 py-2 rounded-xl text-xs font-semibold " + (mode === "expiry" ? "bg-green-600 text-white" : "bg-white border border-slate-200 text-slate-500");
 
   render();
 }
@@ -1284,9 +1413,18 @@ function sortedFoods() {
 function render() {
   const home = document.getElementById("homeFoodList");
   const pantry = document.getElementById("pantryFoodList");
+
+  // A prévia da Home sempre prioriza o que vence primeiro, independente do
+  // modo de ordenação escolhido na tela Despensa (que é preferência do usuário).
+  const byExpiry = [...foods].sort((a, b) => {
+    if (!a.expiry && !b.expiry) return 0;
+    if (!a.expiry) return 1;
+    if (!b.expiry) return -1;
+    return a.expiry.localeCompare(b.expiry);
+  });
   const ordered = sortedFoods();
 
-  home.innerHTML = ordered.slice(0, 3).map(card).join("") || empty();
+  home.innerHTML = byExpiry.slice(0, 3).map(card).join("") || empty();
   pantry.innerHTML = ordered.map(card).join("") || empty();
 
   let exp = 0;
@@ -1312,59 +1450,111 @@ function render() {
     pantryValueEl.textContent = pantryValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
 
-  renderAntiWaste();
-  updateImpactMiniCard();
+  renderSmartAssistant();
   updateNotifyBellBadge();
 }
 
 /* ============================================================
-   MODO ANTI-DESPERDÍCIO
+   ASSISTENTE INTELIGENTE (HOME)
+   Identifica o que merece atenção agora e mostra só isso, em ordem
+   de prioridade: 1) alimentos vencendo, 2) lista de compras pendente,
+   3) resumo de impacto. Se não houver nada relevante, some.
 ============================================================ */
 
-function renderAntiWaste() {
-  const wrap = document.getElementById("antiWasteSection");
-  if (!wrap) return;
-
-  const { soon, expired } = getExpiryWarnings();
-  const items = [...expired, ...soon].sort((a, b) => (a.expiry || "").localeCompare(b.expiry || ""));
-
-  if (!items.length) {
-    wrap.classList.add("hidden");
-    return;
-  }
-
-  wrap.classList.remove("hidden");
-
-  document.getElementById("antiWasteList").innerHTML = items.slice(0, 4).map(f => {
-    const vencido = dateStatus(f.expiry)[0] === "Vencido";
-    return `
-      <div class="flex items-center gap-2 bg-white/70 rounded-xl px-3 py-2 shrink-0">
-        <span class="text-lg">${vencido ? "❌" : "⏰"}</span>
-        <span class="text-xs font-bold truncate max-w-[90px]">${esc(f.name)}</span>
-      </div>
-    `;
-  }).join("");
-}
-
-function updateImpactMiniCard() {
-  const card = document.getElementById("impactMiniCard");
+function renderSmartAssistant() {
+  const card = document.getElementById("smartAssistantCard");
   if (!card) return;
 
-  const { consumido, salvo, economia } = computeStats();
+  const icon = document.getElementById("assistantIcon");
+  const title = document.getElementById("assistantTitle");
+  const text = document.getElementById("assistantText");
+  const chips = document.getElementById("assistantChips");
+  const btn = document.getElementById("assistantActionBtn");
 
-  if (consumido === 0) {
-    card.classList.add("hidden");
-    return;
-  }
+  const { soon, expired } = getExpiryWarnings();
+  const urgent = [...expired, ...soon].sort((a, b) => (a.expiry || "").localeCompare(b.expiry || ""));
+  const pendingShopping = shoppingList.filter(i => !i.checked);
 
   card.classList.remove("hidden");
 
-  let msg = `Você já aproveitou ${consumido} alimento${consumido === 1 ? "" : "s"}`;
-  if (salvo > 0) msg += `, evitando o desperdício de ${salvo}`;
-  if (economia > 0) msg += `. Economia estimada: ${economia.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
-  msg += ".";
+  if (urgent.length) {
+    const itemNames = urgent.map(f => f.name.toLowerCase());
+    const available = foods.map(f => f.name.toLowerCase());
+    const bestRecipe = recipes
+      .map(r => ({ ...r, rescueMatches: r.needs.filter(n => matchIngredient(itemNames, n)).length }))
+      .filter(r => r.rescueMatches > 0)
+      .sort((a, b) => b.rescueMatches - a.rescueMatches)[0];
 
-  document.getElementById("impactMiniText").textContent = msg;
+    icon.textContent = "⏰";
+    title.textContent = `${urgent.length} alimento${urgent.length === 1 ? "" : "s"} ${urgent.length === 1 ? "precisa" : "precisam"} de atenção`;
+    text.textContent = bestRecipe
+      ? `Use primeiro o que está vencendo — sugestão: ${bestRecipe.name}.`
+      : `Use primeiro o que está vencendo, antes que estrague.`;
+
+    chips.classList.remove("hidden");
+    chips.innerHTML = urgent.slice(0, 4).map(f => {
+      const vencido = dateStatus(f.expiry)[0] === "Vencido";
+      return `
+        <div class="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 shrink-0">
+          <span class="w-1.5 h-1.5 rounded-full ${vencido ? "bg-red-500" : "bg-orange-500"}"></span>
+          <span class="text-xs font-medium text-slate-700 truncate max-w-[90px]">${esc(f.name)}</span>
+        </div>
+      `;
+    }).join("");
+
+    btn.textContent = "Abrir Modo Resgate";
+    btn.className = "w-full mt-3 py-2.5 rounded-xl text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200";
+    btn.onclick = openRescueMode;
+    return;
+  }
+
+  chips.classList.add("hidden");
+  chips.innerHTML = "";
+
+  if (pendingShopping.length) {
+    icon.textContent = "🛒";
+    title.textContent = `${pendingShopping.length} ${pendingShopping.length === 1 ? "item pendente" : "itens pendentes"} na lista de compras`;
+    text.textContent = "Nada vencendo agora — hora de repor o que falta.";
+    btn.textContent = "Ver lista de compras";
+    btn.className = "w-full mt-3 py-2.5 rounded-xl text-xs font-semibold bg-slate-50 text-slate-700 border border-slate-200";
+    btn.onclick = () => showScreen("shopping");
+    return;
+  }
+
+  const { consumido, salvo, economia } = computeStats();
+  if (consumido > 0) {
+    icon.textContent = "📈";
+    title.textContent = "Tudo em dia por aqui";
+    let msg = `Você já aproveitou ${consumido} alimento${consumido === 1 ? "" : "s"}`;
+    if (salvo > 0) msg += `, evitando o desperdício de ${salvo}`;
+    if (economia > 0) msg += `. Economia estimada: ${economia.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
+    msg += ".";
+    text.textContent = msg;
+    btn.textContent = "Ver Painel de Impacto";
+    btn.className = "w-full mt-3 py-2.5 rounded-xl text-xs font-semibold bg-slate-50 text-slate-700 border border-slate-200";
+    btn.onclick = () => showScreen("stats");
+    return;
+  }
+
+  card.classList.add("hidden");
+}
+
+// Adiciona instantaneamente 1 unidade de um item comum, com validade
+// sugerida pela IA de conservação — sem passar por nenhum formulário.
+function quickAddCommon(name, storage) {
+  const expiry = estimateExpiryDate(name, storage);
+  addOrMergeFood({ name, expiry, qty: 1, storage });
+
+  const normalized = normalizeText(name);
+  const pendingMatch = shoppingList.find(x => !x.checked && normalizeText(x.name) === normalized);
+  if (pendingMatch) {
+    shoppingList = shoppingList.filter(x => x.id !== pendingMatch.id);
+    saveShoppingDB();
+    renderShopping();
+  }
+
+  render();
+  showToast(`"${name}" adicionado.`, "⚡");
 }
 
 /* ============================================================
@@ -1387,6 +1577,9 @@ function openRescueMode() {
     showToast("Nenhum alimento vencendo no momento. Tudo em dia! ✅", "✅");
     return;
   }
+
+  document.getElementById("rescueHeadline").textContent =
+    `Você tem ${items.length} alimento${items.length === 1 ? "" : "s"} que precisa${items.length === 1 ? "" : "m"} ser usado${items.length === 1 ? "" : "s"} primeiro.`;
 
   renderRescuePlan(items);
   renderRescueRecipes(items);
@@ -1423,11 +1616,11 @@ function renderRescuePlan(items) {
   });
 
   document.getElementById("rescuePlan").innerHTML = labels.map(label => {
-    const cls = label === "Já vencido" ? "bg-red-50 text-red-600" : "bg-orange-50 text-orange-600";
+    const textCls = label === "Já vencido" ? "text-red-600" : "text-orange-600";
     return `
-      <div class="flex items-start gap-3 ${cls} rounded-xl p-3">
-        <span class="font-bold text-xs shrink-0 w-20">${esc(label)}</span>
-        <span class="text-xs flex-1">${groups[label].map(esc).join(", ")}</span>
+      <div class="flex items-start gap-3 bg-slate-50 rounded-xl p-3">
+        <span class="font-semibold text-xs shrink-0 w-20 ${textCls}">${esc(label)}</span>
+        <span class="text-xs flex-1 text-slate-600">${groups[label].map(esc).join(", ")}</span>
       </div>
     `;
   }).join("");
@@ -1447,8 +1640,10 @@ function renderRescueRecipes(items) {
     .sort((a, b) => (b.rescueMatches - a.rescueMatches) || (a.level - b.level));
 
   const top = scored.slice(0, 4);
+  const label = document.getElementById("rescueRecipesLabel");
 
   if (!top.length) {
+    label.textContent = "Nenhuma receita combina exatamente com esses itens";
     document.getElementById("rescueRecipes").innerHTML = `
       <p class="text-xs text-slate-400 leading-relaxed">
         Nenhuma receita do catálogo combina exatamente esses itens ainda — mas dá pra
@@ -1459,18 +1654,20 @@ function renderRescueRecipes(items) {
     return;
   }
 
+  label.textContent = `Encontrei ${top.length} receita${top.length === 1 ? "" : "s"} usando esses alimentos`;
+
   document.getElementById("rescueRecipes").innerHTML = top.map(r => {
     const diff = DIFFICULTY[r.level] || DIFFICULTY[2];
     return `
-      <div class="recipe-card bg-white border border-slate-100 rounded-2xl p-3 cursor-pointer flex items-center gap-3"
+      <div class="recipe-card bg-white border border-slate-200 rounded-2xl p-3 cursor-pointer flex items-center gap-3"
            onclick="closeRescueMode(); openRecipeDetail('${attr(r.name)}')">
-        <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-2xl shrink-0">${r.icon}</div>
+        <div class="w-11 h-11 rounded-xl bg-slate-50 flex items-center justify-center text-xl shrink-0">${r.icon}</div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
-            <p class="font-bold text-sm">${esc(r.name)}</p>
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold ${diff.cls}">${diff.label}</span>
+            <p class="font-semibold text-sm text-slate-800">${esc(r.name)}</p>
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold ${diff.cls}">${diff.label}</span>
           </div>
-          <p class="text-[11px] text-orange-600 font-semibold mt-0.5">Usa ${r.rescueMatches} ingrediente(s) que estão vencendo</p>
+          <p class="text-[11px] text-orange-600 mt-0.5">Usa ${r.rescueMatches} ingrediente(s) que estão vencendo</p>
         </div>
         <span class="text-lg text-slate-300">›</span>
       </div>
@@ -1485,25 +1682,25 @@ function renderRescueRecipes(items) {
 function shoppingRow(item) {
   const checked = !!item.checked;
   const badge = item.auto
-    ? `<span class="ml-2 shrink-0 px-2 py-0.5 rounded-lg text-[9px] font-bold bg-orange-100 text-orange-600">sugestão</span>`
+    ? `<span class="ml-2 shrink-0 px-2 py-0.5 rounded-lg text-[9px] font-semibold bg-orange-50 text-orange-600">sugestão</span>`
     : "";
 
   const rightActions = checked
     ? `
-      <button onclick="addToPantryFromShopping(${Number(item.id)})" class="px-3 bg-green-50 text-green-700 rounded-xl py-2 text-xs font-bold">+ Despensa</button>
-      <button onclick="removeShoppingItem(${Number(item.id)})" class="px-3 bg-slate-100 text-slate-500 rounded-xl py-2 text-xs font-bold">Remover</button>
+      <button onclick="addToPantryFromShopping(${Number(item.id)})" class="px-3 bg-slate-50 text-slate-700 rounded-xl py-2 text-xs font-semibold">+ Despensa</button>
+      <button onclick="removeShoppingItem(${Number(item.id)})" class="px-3 bg-slate-50 text-slate-500 rounded-xl py-2 text-xs font-semibold">Remover</button>
     `
     : `
-      <button onclick="removeShoppingItem(${Number(item.id)})" class="px-3 bg-slate-100 text-slate-500 rounded-xl py-2 text-xs font-bold">Remover</button>
+      <button onclick="removeShoppingItem(${Number(item.id)})" class="px-3 bg-slate-50 text-slate-500 rounded-xl py-2 text-xs font-semibold">Remover</button>
     `;
 
   return `
-    <div class="bg-white rounded-2xl border border-slate-100 p-3 flex items-center gap-3">
+    <div class="bg-white rounded-2xl border border-slate-200 p-3 flex items-center gap-3">
       <button onclick="toggleShoppingItem(${Number(item.id)})" class="shop-check ${checked ? "checked" : ""}">
         ${checked ? "✓" : ""}
       </button>
       <div class="flex-1 min-w-0 flex items-center">
-        <span class="font-semibold truncate ${checked ? "line-through text-slate-400" : ""}">${esc(item.name)}</span>
+        <span class="font-medium text-slate-700 truncate ${checked ? "line-through text-slate-400" : ""}">${esc(item.name)}</span>
         ${badge}
       </div>
       <div class="flex gap-2 shrink-0">${rightActions}</div>
@@ -1516,7 +1713,7 @@ function shoppingEmpty(kind) {
     return `
       <div class="text-center py-8">
         <div class="text-4xl">🛒</div>
-        <p class="font-bold mt-2 text-sm">Nada pendente na lista.</p>
+        <p class="font-semibold text-slate-700 mt-2 text-sm">Nada pendente na lista.</p>
         <p class="text-xs text-slate-400 mt-1">Adicione itens ou consuma algo da despensa.</p>
       </div>
     `;
@@ -1537,8 +1734,13 @@ function renderShopping() {
   document.getElementById("shopPendingCount").textContent = pending.length;
   document.getElementById("shopBoughtCount").textContent = bought.length;
 
-  document.getElementById("homeShoppingSummary").textContent =
-    pending.length === 1 ? "1 item pendente" : `${pending.length} itens pendentes`;
+  const homeBadge = document.getElementById("homeShoppingBadge");
+  if (pending.length > 0) {
+    homeBadge.textContent = pending.length > 99 ? "99+" : pending.length;
+    homeBadge.classList.remove("hidden");
+  } else {
+    homeBadge.classList.add("hidden");
+  }
 
   const navBadge = document.getElementById("navShoppingBadge");
   if (pending.length > 0) {
@@ -1645,6 +1847,9 @@ function openManualAdd() {
   document.getElementById("manualFoodQty").value = 1;
   document.getElementById("manualFoodPrice").value = "";
   document.getElementById("manualFoodStorage").value = "despensa";
+  document.getElementById("manualFoodOpened").checked = false;
+  document.getElementById("manualFoodOpenedDate").value = todayISO();
+  document.getElementById("manualFoodOpenedDateWrap").classList.add("hidden");
   document.getElementById("manualExpiryDate").value = plusDaysISO(7);
 
   setTimeout(() => document.getElementById("manualFoodName").focus(), 100);
@@ -1654,17 +1859,29 @@ function closeManualAdd() {
   document.getElementById("manualModal").classList.add("hidden");
 }
 
-// Sugere uma validade automaticamente com base no nome do alimento e no
-// local de guarda (IA de conservação). O usuário pode sempre sobrescrever.
+function toggleOpenedField(prefix) {
+  const checked = document.getElementById(prefix === "manual" ? "manualFoodOpened" : "foodOpened").checked;
+  const wrap = document.getElementById(prefix === "manual" ? "manualFoodOpenedDateWrap" : "foodOpenedDateWrap");
+  const dateEl = document.getElementById(prefix === "manual" ? "manualFoodOpenedDate" : "foodOpenedDate");
+
+  wrap.classList.toggle("hidden", !checked);
+  if (checked && !dateEl.value) dateEl.value = todayISO();
+}
+
+// Sugere uma validade automaticamente com base no nome do alimento, no local
+// de guarda e em já ter sido aberto ou não (IA de conservação).
+// O usuário pode sempre sobrescrever — a data impressa na embalagem manda.
 function autoEstimateExpiry(prefix) {
   const nameEl = document.getElementById(prefix === "manual" ? "manualFoodName" : "foodName");
   const storageEl = document.getElementById(prefix === "manual" ? "manualFoodStorage" : "foodStorage");
   const dateEl = document.getElementById(prefix === "manual" ? "manualExpiryDate" : "expiryDate");
+  const openedEl = document.getElementById(prefix === "manual" ? "manualFoodOpened" : "foodOpened");
+  const openedDateEl = document.getElementById(prefix === "manual" ? "manualFoodOpenedDate" : "foodOpenedDate");
 
   const name = nameEl.value.trim();
   if (!name) return;
 
-  dateEl.value = estimateExpiryDate(name, storageEl.value);
+  dateEl.value = estimateExpiryDate(name, storageEl.value, openedEl.checked, openedDateEl.value);
 }
 
 function saveManualFood() {
@@ -1685,6 +1902,15 @@ function saveManualFood() {
   }
 
   addOrMergeFood({ name, expiry, qty, price, storage });
+
+  // Se o alimento estava pendente na lista de compras, marca como resolvido.
+  const normalized = normalizeText(name);
+  const pendingMatch = shoppingList.find(x => !x.checked && normalizeText(x.name) === normalized);
+  if (pendingMatch) {
+    shoppingList = shoppingList.filter(x => x.id !== pendingMatch.id);
+    saveShoppingDB();
+    renderShopping();
+  }
 
   render();
   closeManualAdd();
@@ -1779,9 +2005,9 @@ async function loadAI() {
 function setStatus(title, desc, icon) {
   document.getElementById("aiStatus").innerHTML = `
     <div class="flex gap-3 items-center">
-      <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center">${icon}</div>
+      <div class="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-base">${icon}</div>
       <div>
-        <p class="font-bold">${esc(title)}</p>
+        <p class="font-semibold text-slate-800">${esc(title)}</p>
         <p class="text-xs text-slate-400 mt-1">${esc(desc)}</p>
       </div>
     </div>
@@ -2178,6 +2404,29 @@ function usePrediction() {
   openManualForm(name);
 }
 
+// Salva direto com os valores estimados (qtd 1, despensa, validade sugerida),
+// sem passar pelo formulário — para o fluxo escanear → confirmar → salvar ser rápido.
+function quickSavePrediction() {
+  const name = lastPrediction?.name;
+  if (!name) return;
+
+  const expiry = estimateExpiryDate(name, "despensa");
+  addOrMergeFood({ name, expiry, qty: 1, storage: "despensa" });
+
+  const normalized = normalizeText(name);
+  const pendingMatch = shoppingList.find(x => !x.checked && normalizeText(x.name) === normalized);
+  if (pendingMatch) {
+    shoppingList = shoppingList.filter(x => x.id !== pendingMatch.id);
+    saveShoppingDB();
+    renderShopping();
+  }
+
+  render();
+  closeScanner();
+  showScreen("pantry");
+  showToast(`"${name}" salvo na despensa.`, "⚡");
+}
+
 function openManualForm(name) {
   name = name || "";
   document.getElementById("productForm").classList.remove("hidden");
@@ -2185,6 +2434,9 @@ function openManualForm(name) {
   document.getElementById("foodQty").value = 1;
   document.getElementById("foodPrice").value = "";
   document.getElementById("foodStorage").value = "despensa";
+  document.getElementById("foodOpened").checked = false;
+  document.getElementById("foodOpenedDate").value = todayISO();
+  document.getElementById("foodOpenedDateWrap").classList.add("hidden");
   document.getElementById("expiryDate").value = name ? estimateExpiryDate(name, "despensa") : plusDaysISO(7);
 
   document.getElementById("productForm").scrollIntoView({
@@ -2320,8 +2572,15 @@ async function barcodeFound(code) {
         p.product_name ||
         "Produto identificado";
 
-      openManualForm(name);
-      setStatus("Produto encontrado", "Confira a validade e salve.", "✓");
+      lastPrediction = {
+        name: normalizeFoodName(name),
+        confidence: 95,
+        sources: ["Código de barras"],
+        ocrText: "",
+        alternatives: []
+      };
+      showPrediction(lastPrediction);
+      setStatus("Produto encontrado", "Confira e salve — é a fonte mais confiável.", "✓");
     } else {
       openManualForm();
       setStatus("Produto não encontrado", "Digite o nome manualmente.", "⚠️");
@@ -2364,6 +2623,26 @@ function increaseQty(id) {
   f.qty = (f.qty || 1) + 1;
   saveDB();
   render();
+}
+
+// Descarta um alimento vencido por inteiro (todas as unidades) e registra
+// como desperdício no Painel de Impacto.
+function discardFood(id) {
+  const f = foods.find(x => x.id === id);
+  if (!f) return;
+
+  const qty = f.qty || 1;
+  const label = qty > 1 ? `${qty} unidades de "${f.name}"` : `"${f.name}"`;
+  if (!confirm(`Descartar ${label} por estar vencido?`)) return;
+
+  for (let i = 0; i < qty; i++) logConsumption(f);
+
+  foods = foods.filter(x => x.id !== id);
+  saveDB();
+  render();
+
+  checkIfLastOfKind(f.name);
+  showToast(`${label} descartado.`, "🗑");
 }
 
 function checkIfLastOfKind(name) {
@@ -2410,7 +2689,7 @@ function renderRecipeSections(available, filterWord) {
     list.innerHTML = `
       <div class="text-center py-12">
         <div class="text-5xl">🍽️</div>
-        <p class="font-bold mt-3">Sua despensa está vazia.</p>
+        <p class="font-semibold text-slate-700 mt-3">Sua despensa está vazia.</p>
         <p class="text-sm text-slate-400 mt-1">Adicione alimentos para ver sugestões.</p>
       </div>
     `;
@@ -2439,9 +2718,10 @@ function renderRecipeSections(available, filterWord) {
     })
     .filter(r => r.haveCount > 0);
 
-  // Prioridade: 1º usa itens vencendo (anti-desperdício), 2º mais fácil, 3º mais completa.
+  // Prioridade: 1º usa itens vencendo (anti-desperdício), 2º mais ingredientes
+  // disponíveis, 3º menos ingredientes faltando.
   const byPriority = (a, b) =>
-    (b.expiringBoost - a.expiringBoost) || (a.level - b.level) || (b.haveCount - a.haveCount);
+    (b.expiringBoost - a.expiringBoost) || (b.haveCount - a.haveCount) || (a.missing.length - b.missing.length);
 
   const ready = scored
     .filter(r => r.missing.length === 0)
@@ -2455,14 +2735,14 @@ function renderRecipeSections(available, filterWord) {
 
   if (ready.length) {
     html += `
-      <p class="text-xs font-bold text-green-700 uppercase tracking-wide">✓ Você pode fazer agora</p>
+      <p class="text-xs font-semibold text-green-700 uppercase tracking-wide">Você pode fazer agora</p>
       ${ready.map(recipeCard).join("")}
     `;
   }
 
   if (partial.length) {
     html += `
-      <p class="text-xs font-bold text-orange-500 uppercase tracking-wide mt-2">Falta pouco</p>
+      <p class="text-xs font-semibold text-orange-600 uppercase tracking-wide mt-2">Falta pouco</p>
       ${partial.map(recipeCard).join("")}
     `;
   }
@@ -2471,7 +2751,7 @@ function renderRecipeSections(available, filterWord) {
     html = `
       <div class="text-center py-12">
         <div class="text-5xl">🤔</div>
-        <p class="font-bold mt-3">Nenhuma receita com o que você tem.</p>
+        <p class="font-semibold text-slate-700 mt-3">Nenhuma receita com o que você tem.</p>
         <p class="text-sm text-slate-400 mt-1">Adicione mais alimentos à despensa.</p>
       </div>
     `;
@@ -2482,27 +2762,30 @@ function renderRecipeSections(available, filterWord) {
 
 function recipeCard(r) {
   const missingText = r.missing?.length
-    ? `<p class="text-xs text-orange-500 font-semibold mt-1">Falta: ${r.missing.map(esc).join(", ")}</p>`
+    ? `
+      <p class="text-xs text-orange-600 mt-1">Falta: ${r.missing.map(esc).join(", ")}</p>
+      <button onclick="event.stopPropagation(); addRecipeMissingToShopping('${attr(r.name)}')" class="mt-2 text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">Adicionar faltantes à lista</button>
+    `
     : "";
 
   const diff = DIFFICULTY[r.level] || DIFFICULTY[2];
   const wasteBadge = r.expiringBoost > 0
-    ? `<span class="shrink-0 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-orange-100 text-orange-700">♻️ Aproveita o que vence</span>`
+    ? `<span class="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-semibold border border-orange-200 text-orange-700">Aproveita o que vence</span>`
     : "";
 
   return `
-    <div class="recipe-card bg-white rounded-2xl border border-slate-100 p-4 cursor-pointer"
+    <div class="recipe-card bg-white rounded-2xl border border-slate-200 p-4 cursor-pointer"
          onclick="openRecipeDetail('${attr(r.name)}')">
-      <div class="flex gap-4 items-center">
-        <div class="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center text-3xl shrink-0">${r.icon}</div>
+      <div class="flex gap-3 items-center">
+        <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-2xl shrink-0">${r.icon}</div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
-            <h4 class="font-extrabold">${esc(r.name)}</h4>
-            <span class="shrink-0 px-2 py-0.5 rounded-lg text-[10px] font-bold ${diff.cls}">${diff.label}</span>
+            <h4 class="font-semibold text-slate-800">${esc(r.name)}</h4>
+            <span class="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-semibold ${diff.cls}">${diff.label}</span>
             ${wasteBadge}
           </div>
-          <p class="text-xs text-orange-500 font-semibold mt-1">⏱ ${esc(r.time)}</p>
-          <p class="text-xs text-slate-400 mt-2">Ingredientes: ${r.needs.map(esc).join(", ")}</p>
+          <p class="text-xs text-slate-400 mt-1">${esc(r.time)}</p>
+          <p class="text-xs text-slate-400 mt-1.5">${r.needs.map(esc).join(", ")}</p>
           ${missingText}
         </div>
         <span class="text-xl text-slate-300">›</span>
@@ -2515,6 +2798,38 @@ function recipeCard(r) {
    DETALHE DA RECEITA
 ============================================================ */
 
+// Adiciona os ingredientes que faltam para uma receita à lista de compras.
+// Sem argumento, usa a receita aberta no detalhe (currentRecipe).
+function addRecipeMissingToShopping(name) {
+  const r = name ? recipes.find(x => x.name === name) : currentRecipe;
+  if (!r) return;
+
+  const available = foods.map(f => f.name.toLowerCase());
+  const missing = r.needs.filter(n => !matchIngredient(available, n));
+  if (!missing.length) return;
+
+  let added = 0;
+  missing.forEach(ingredientName => {
+    const display = ingredientName.charAt(0).toUpperCase() + ingredientName.slice(1);
+    const normalized = normalizeText(display);
+    const alreadyPending = shoppingList.some(x => !x.checked && normalizeText(x.name) === normalized);
+    if (!alreadyPending) {
+      shoppingList.unshift({ id: Date.now() + added, name: display, checked: false, auto: false });
+      added++;
+    }
+  });
+
+  if (added > 0) {
+    saveShoppingDB();
+    renderShopping();
+    render();
+  }
+
+  showToast(
+    added > 0 ? `${added} ingrediente${added === 1 ? "" : "s"} adicionado${added === 1 ? "" : "s"} à lista de compras.` : "Esses ingredientes já estão na lista.",
+    "🛒"
+  );
+}
 function openRecipeDetail(name) {
   const r = recipes.find(x => x.name === name);
   if (!r) return;
@@ -2536,6 +2851,8 @@ function openRecipeDetail(name) {
     missing.length
       ? `Falta: ${missing.join(", ")}`
       : "Você tem tudo para essa receita ✓";
+
+  document.getElementById("recipeDetailMissingBtn").classList.toggle("hidden", missing.length === 0);
 
   renderRecipeStep();
 }
@@ -2618,17 +2935,14 @@ function expiryWarningRow(f, kind) {
     ? new Date(f.expiry + "T00:00:00").toLocaleDateString("pt-BR")
     : "Sem validade";
 
-  const cls = kind === "expired"
-    ? "bg-red-50 text-red-600"
-    : "bg-orange-50 text-orange-600";
-  const icon = kind === "expired" ? "❌" : "⏰";
+  const dot = kind === "expired" ? "bg-red-500" : "bg-orange-500";
 
   return `
-    <div class="flex items-center gap-3 ${cls} rounded-xl p-3">
-      <span class="text-xl">${icon}</span>
+    <div class="flex items-center gap-3 bg-slate-50 rounded-xl p-3">
+      <span class="w-2 h-2 rounded-full shrink-0 ${dot}"></span>
       <div class="flex-1 min-w-0">
-        <p class="font-bold text-sm truncate">${esc(f.name)}</p>
-        <p class="text-xs opacity-80">Validade: ${expiryText}</p>
+        <p class="font-semibold text-sm text-slate-800 truncate">${esc(f.name)}</p>
+        <p class="text-xs text-slate-400">Validade: ${expiryText}</p>
       </div>
     </div>
   `;
@@ -2640,12 +2954,12 @@ function showExpiryAlert(soon, expired) {
   let html = "";
 
   if (expired.length) {
-    html += `<p class="text-xs font-bold text-red-600 uppercase tracking-wide">Vencidos</p>`;
+    html += `<p class="text-xs font-semibold text-red-600 uppercase tracking-wide">Vencidos</p>`;
     html += expired.map(f => expiryWarningRow(f, "expired")).join("");
   }
 
   if (soon.length) {
-    html += `<p class="text-xs font-bold text-orange-500 uppercase tracking-wide mt-3">Vencem logo</p>`;
+    html += `<p class="text-xs font-semibold text-orange-600 uppercase tracking-wide mt-3">Vencem logo</p>`;
     html += soon.map(f => expiryWarningRow(f, "soon")).join("");
   }
 
@@ -2653,7 +2967,7 @@ function showExpiryAlert(soon, expired) {
     html = `
       <div class="text-center py-8">
         <div class="text-4xl">✅</div>
-        <p class="font-bold mt-2 text-sm">Tudo em dia por aqui!</p>
+        <p class="font-semibold mt-2 text-sm text-slate-700">Tudo em dia por aqui!</p>
         <p class="text-xs text-slate-400 mt-1">Nenhum alimento vencido ou vencendo logo.</p>
       </div>
     `;
@@ -2797,6 +3111,259 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+
+/* ============================================================
+   EASTER EGG — COBRINHA
+   Desbloqueia ao pressionar P três vezes seguidas.
+============================================================ */
+
+let pPressCount = 0;
+let pPressTimer = null;
+
+let snakeCtx = null;
+let snake = [];
+let snakeFood = { x: 0, y: 0 };
+let snakeDirection = { x: 1, y: 0 };
+let snakeNextDirection = { x: 1, y: 0 };
+let snakeScoreValue = 0;
+let snakeLoop = null;
+let snakeRunning = false;
+
+const SNAKE_GRID = 18;
+const SNAKE_CELL = 20;
+
+function unlockSnakeEasterEgg() {
+  const btn = document.getElementById("snakeEasterEggBtn");
+  if (btn) btn.classList.remove("hidden");
+  showToast("Easter egg desbloqueado! 🐍", "🎮");
+}
+
+document.addEventListener("keydown", e => {
+  // Não conta P quando o usuário está digitando em um campo.
+  const tag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : "";
+  const isTyping = tag === "input" || tag === "textarea" || tag === "select" || e.target?.isContentEditable;
+
+  if (!isTyping && e.key.toLowerCase() === "p") {
+    pPressCount++;
+    clearTimeout(pPressTimer);
+    pPressTimer = setTimeout(() => { pPressCount = 0; }, 1200);
+
+    if (pPressCount >= 3) {
+      pPressCount = 0;
+      clearTimeout(pPressTimer);
+      unlockSnakeEasterEgg();
+    }
+  }
+
+  if (document.getElementById("snakeGameModal") &&
+      !document.getElementById("snakeGameModal").classList.contains("hidden")) {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d", "W", "A", "S", "D"].includes(e.key)) {
+      e.preventDefault();
+      const key = e.key.toLowerCase();
+      if (e.key === "ArrowUp" || key === "w") snakeChangeDirection("up");
+      if (e.key === "ArrowDown" || key === "s") snakeChangeDirection("down");
+      if (e.key === "ArrowLeft" || key === "a") snakeChangeDirection("left");
+      if (e.key === "ArrowRight" || key === "d") snakeChangeDirection("right");
+    }
+  }
+});
+
+function openSnakeGame() {
+  const modal = document.getElementById("snakeGameModal");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  startSnakeGame();
+}
+
+function closeSnakeGame() {
+  const modal = document.getElementById("snakeGameModal");
+  if (modal) modal.classList.add("hidden");
+  stopSnakeGame();
+}
+
+function startSnakeGame() {
+  const canvas = document.getElementById("snakeCanvas");
+  if (!canvas) return;
+
+  snakeCtx = canvas.getContext("2d");
+  snake = [
+    { x: 8, y: 9 },
+    { x: 7, y: 9 },
+    { x: 6, y: 9 }
+  ];
+  snakeDirection = { x: 1, y: 0 };
+  snakeNextDirection = { x: 1, y: 0 };
+  snakeScoreValue = 0;
+  snakeRunning = true;
+
+  document.getElementById("snakeScore").textContent = "0";
+  document.getElementById("snakeStatus").textContent =
+    "Pegue as maçãs e não bata nas paredes ou em você mesmo.";
+
+  placeSnakeFood();
+  drawSnakeGame();
+
+  clearInterval(snakeLoop);
+  snakeLoop = setInterval(updateSnakeGame, 125);
+}
+
+function stopSnakeGame() {
+  snakeRunning = false;
+  clearInterval(snakeLoop);
+  snakeLoop = null;
+}
+
+function snakeChangeDirection(dir) {
+  if (!snakeRunning) return;
+
+  const directions = {
+    up: { x: 0, y: -1 },
+    down: { x: 0, y: 1 },
+    left: { x: -1, y: 0 },
+    right: { x: 1, y: 0 }
+  };
+
+  const next = directions[dir];
+  if (!next) return;
+
+  // Impede a cobra de virar diretamente para trás.
+  if (next.x === -snakeDirection.x && next.y === -snakeDirection.y) return;
+
+  snakeNextDirection = next;
+}
+
+function placeSnakeFood() {
+  do {
+    snakeFood = {
+      x: Math.floor(Math.random() * SNAKE_GRID),
+      y: Math.floor(Math.random() * SNAKE_GRID)
+    };
+  } while (snake.some(part => part.x === snakeFood.x && part.y === snakeFood.y));
+}
+
+function updateSnakeGame() {
+  if (!snakeRunning) return;
+
+  snakeDirection = snakeNextDirection;
+
+  const head = {
+    x: snake[0].x + snakeDirection.x,
+    y: snake[0].y + snakeDirection.y
+  };
+
+  const hitWall =
+    head.x < 0 || head.x >= SNAKE_GRID ||
+    head.y < 0 || head.y >= SNAKE_GRID;
+
+  const hitSelf = snake.some(part => part.x === head.x && part.y === head.y);
+
+  if (hitWall || hitSelf) {
+    snakeGameOver();
+    return;
+  }
+
+  snake.unshift(head);
+
+  const ateFood = head.x === snakeFood.x && head.y === snakeFood.y;
+
+  if (ateFood) {
+    snakeScoreValue++;
+    document.getElementById("snakeScore").textContent = snakeScoreValue;
+    placeSnakeFood();
+  } else {
+    snake.pop();
+  }
+
+  drawSnakeGame();
+}
+
+function snakeGameOver() {
+  snakeRunning = false;
+  clearInterval(snakeLoop);
+  snakeLoop = null;
+  document.getElementById("snakeStatus").textContent =
+    `Fim de jogo! Você fez ${snakeScoreValue} ponto${snakeScoreValue === 1 ? "" : "s"}.`;
+  drawSnakeGame(true);
+}
+
+function drawSnakeGame(gameOver = false) {
+  if (!snakeCtx) return;
+
+  const canvas = snakeCtx.canvas;
+
+  snakeCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Fundo quadriculado discreto.
+  snakeCtx.fillStyle = document.documentElement.classList.contains("dark")
+    ? "#0f1a14"
+    : "#f7faf8";
+  snakeCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+  snakeCtx.strokeStyle = document.documentElement.classList.contains("dark")
+    ? "#1d2b24"
+    : "#e8efeb";
+  snakeCtx.lineWidth = 1;
+
+  for (let i = 0; i <= SNAKE_GRID; i++) {
+    const p = i * SNAKE_CELL;
+    snakeCtx.beginPath();
+    snakeCtx.moveTo(p, 0);
+    snakeCtx.lineTo(p, canvas.height);
+    snakeCtx.stroke();
+    snakeCtx.beginPath();
+    snakeCtx.moveTo(0, p);
+    snakeCtx.lineTo(canvas.width, p);
+    snakeCtx.stroke();
+  }
+
+  // Comida.
+  snakeCtx.font = `${SNAKE_CELL - 2}px system-ui`;
+  snakeCtx.textAlign = "center";
+  snakeCtx.textBaseline = "middle";
+  snakeCtx.fillText("🍎", snakeFood.x * SNAKE_CELL + SNAKE_CELL / 2,
+                         snakeFood.y * SNAKE_CELL + SNAKE_CELL / 2 + 1);
+
+  // Cobra.
+  snake.forEach((part, index) => {
+    const pad = 2;
+    const x = part.x * SNAKE_CELL + pad;
+    const y = part.y * SNAKE_CELL + pad;
+    const size = SNAKE_CELL - pad * 2;
+
+    snakeCtx.fillStyle = index === 0 ? "#16a34a" : "#3a9b5c";
+    snakeCtx.beginPath();
+    snakeCtx.roundRect(x, y, size, size, 5);
+    snakeCtx.fill();
+  });
+
+  // Olhos na cabeça.
+  if (snake.length) {
+    const head = snake[0];
+    const cx = head.x * SNAKE_CELL + SNAKE_CELL / 2;
+    const cy = head.y * SNAKE_CELL + SNAKE_CELL / 2;
+    const eyeOffset = 4;
+
+    snakeCtx.fillStyle = "#ffffff";
+    snakeCtx.beginPath();
+    snakeCtx.arc(cx - (snakeDirection.y !== 0 ? eyeOffset : 0),
+                 cy - (snakeDirection.x !== 0 ? eyeOffset : 0), 2, 0, Math.PI * 2);
+    snakeCtx.fill();
+    snakeCtx.beginPath();
+    snakeCtx.arc(cx + (snakeDirection.y !== 0 ? eyeOffset : 0),
+                 cy + (snakeDirection.x !== 0 ? eyeOffset : 0), 2, 0, Math.PI * 2);
+    snakeCtx.fill();
+  }
+
+  if (gameOver) {
+    snakeCtx.fillStyle = "rgba(15,23,18,.55)";
+    snakeCtx.fillRect(0, 0, canvas.width, canvas.height);
+    snakeCtx.fillStyle = "#ffffff";
+    snakeCtx.font = "800 26px system-ui";
+    snakeCtx.textAlign = "center";
+    snakeCtx.fillText("Fim de jogo", canvas.width / 2, canvas.height / 2);
+  }
+}
+
 /* ============================================================
    TECLADO / MODAIS
 ============================================================ */
@@ -2805,6 +3372,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     closeManualAdd();
     closeRecipeDetail();
+    closeSnakeGame();
     if (!document.getElementById("scannerModal").classList.contains("hidden")) {
       closeScanner();
     }
