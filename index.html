@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#DDF5E6">
-  <meta name="description" content="Sabor&Validade — despensa inteligente com IA, OCR, código de barras e lista de compras">
-  <title>Sabor&Validade</title>
+  <meta name="description" content="Waste2Taste — despensa inteligente com IA, OCR, código de barras e lista de compras">
+  <title>Waste2Taste</title>
 
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Sabor&Validade">
+  <meta name="apple-mobile-web-app-title" content="Waste2Taste">
   <meta name="mobile-web-app-capable" content="yes">
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -31,8 +31,13 @@
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       overscroll-behavior-y: none;
     }
-    button, input { font: inherit; }
-    .screen { display: none; animation: fade .2s ease; }
+    button, input, select { font: inherit; }
+    button { transition: transform .12s ease, background-color .15s ease, border-color .15s ease; }
+    button:active { transform: scale(.97); }
+    .screen { will-change: opacity, transform; }
+    /* Barra de rolagem discreta nas faixas horizontais */
+    .overflow-x-auto::-webkit-scrollbar { height: 0; }
+    .screen { display: none; animation: fade .22s cubic-bezier(.2,.7,.3,1); }
     .screen.active { display: block; }
     @keyframes fade {
       from { opacity: 0; transform: translateY(5px); }
@@ -80,6 +85,22 @@
     }
     .shop-check.checked { background: #16a34a; border-color: #16a34a; color: #fff; }
 
+    /* ===== JOGOS (EASTER EGG) ===== */
+    .mine-cell {
+      width: 32px; height: 32px; border-radius: 6px;
+      background: #cbd5e1; border: 0; font-weight: 700; font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+      color: #334155; user-select: none; -webkit-user-select: none;
+    }
+    .mine-cell.revealed { background: #f1f5f9; }
+    .mine-cell.flagged { background: #fed7aa; }
+    .snake-opt { border: 2px solid transparent; }
+    .snake-opt.active { border-color: #0f172a; }
+    html.dark .mine-cell { background: #33463b; color: #e7ece9; }
+    html.dark .mine-cell.revealed { background: #1d2b24; }
+    html.dark .mine-cell.flagged { background: #5a3a14; }
+    html.dark .snake-opt.active { border-color: #7fe3a0; }
+
     /* ===== MODO ESCURO ===== */
     html.dark body { background:#0f1a14; color:#e7ece9; }
     html.dark .bg-\[\#F7FAF8\] { background:#0f1a14 !important; }
@@ -115,41 +136,6 @@
     }
     html.dark input::placeholder { color:#6f7b74 !important; }
     html.dark #darkModeBtn .dm-icon { filter: drop-shadow(0 0 2px rgba(255,255,255,.3)); }
-
-    /* ===== EASTER EGG — COBRINHA ===== */
-    #snakeGameModal {
-      background: rgba(15,23,18,.82);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-    }
-    #snakeCanvas {
-      width: min(88vw, 360px);
-      height: min(88vw, 360px);
-      max-width: 360px;
-      max-height: 360px;
-      image-rendering: pixelated;
-      touch-action: none;
-      border-radius: 18px;
-    }
-    .snake-control {
-      width: 58px;
-      height: 48px;
-      border-radius: 14px;
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      font-size: 22px;
-      font-weight: 800;
-      color: #334155;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .snake-control:active { transform: scale(.94); }
-    html.dark #snakeGameModal .bg-white { background:#182620 !important; }
-    html.dark .snake-control {
-      background:#243328;
-      border-color:#33463b;
-      color:#e7ece9;
-    }
   </style>
 </head>
 
@@ -159,9 +145,9 @@
   <header class="sticky top-0 z-30 bg-[#F7FAF8]/95 backdrop-blur border-b border-slate-200">
     <div class="px-5 py-4 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <img src="icon-192.png" alt="Sabor&Validade" class="w-10 h-10 rounded-2xl object-cover">
+        <img src="icon-192.png" alt="Waste2Taste" class="w-10 h-10 rounded-2xl object-cover">
         <div>
-          <h1 class="font-extrabold text-lg">Sabor<span class="text-green-600">&</span>Validade</h1>
+          <h1 class="font-extrabold text-lg">Waste<span class="text-green-600">2</span>Taste</h1>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -270,22 +256,36 @@
       <p class="text-sm text-slate-400">Compras</p>
       <h2 class="text-2xl font-extrabold mt-1">Lista de Compras</h2>
 
-      <div class="grid grid-cols-2 gap-3 mt-5 mb-5">
-        <div class="bg-white rounded-2xl p-4 border border-slate-200">
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 mt-5 mb-4">
+        <div class="flex items-end justify-between mb-2">
+          <div>
+            <p class="text-xs text-slate-400">Progresso da compra</p>
+            <p class="text-sm font-semibold text-slate-800">
+              <span id="shopBoughtCount">0</span> de <span id="shopTotalCount">0</span> itens
+            </p>
+          </div>
           <p id="shopPendingCount" class="text-2xl font-extrabold text-slate-800">0</p>
-          <p class="text-xs text-slate-400">A comprar</p>
         </div>
-        <div class="bg-white rounded-2xl p-4 border border-slate-200">
-          <p id="shopBoughtCount" class="text-2xl font-extrabold text-green-600">0</p>
-          <p class="text-xs text-slate-400">Comprados</p>
+        <div class="bg-slate-100 rounded-full h-2 overflow-hidden">
+          <div id="shopProgressBar" class="bg-green-600 h-full rounded-full transition-all duration-300" style="width:0%"></div>
         </div>
+        <p id="shopEstimate" class="text-[11px] text-slate-400 mt-2"></p>
       </div>
 
-      <div class="flex gap-2 mb-5">
+      <div class="flex gap-2 mb-3">
         <input id="newShoppingItem" placeholder="Adicionar item à lista..."
                class="flex-1 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-200"
+               oninput="renderShoppingSuggestions()"
                onkeydown="if(event.key==='Enter') addShoppingItem()">
         <button onclick="addShoppingItem()" class="bg-green-600 text-white w-12 rounded-xl font-semibold text-xl">+</button>
+      </div>
+
+      <div id="shoppingSuggestions" class="flex gap-2 mb-4 overflow-x-auto pb-1"></div>
+
+      <div id="shoppingActions" class="hidden flex gap-2 mb-4">
+        <button onclick="markAllShopping(true)" class="flex-1 bg-white border border-slate-200 text-slate-600 py-2 rounded-xl text-xs font-semibold">Marcar tudo</button>
+        <button onclick="addAllBoughtToPantry()" id="shopSendAllBtn" class="hidden flex-1 bg-green-600 text-white py-2 rounded-xl text-xs font-semibold">Mandar tudo p/ despensa</button>
+        <button onclick="clearBoughtShopping()" id="shopClearBtn" class="hidden flex-1 bg-white border border-slate-200 text-slate-500 py-2 rounded-xl text-xs font-semibold">Limpar comprados</button>
       </div>
 
       <div id="shoppingPendingWrap">
@@ -310,7 +310,7 @@
     <!-- PROFILE -->
     <section id="profile" class="screen pt-5">
       <div class="text-center py-6">
-        <img src="icon-192.png" alt="Sabor&Validade" class="w-20 h-20 mx-auto rounded-full object-cover">
+        <img src="icon-192.png" alt="Waste2Taste" class="w-20 h-20 mx-auto rounded-full object-cover">
         <h2 class="text-2xl font-extrabold mt-4">Meu Perfil</h2>
         <p class="text-sm text-slate-400">Despensa inteligente com IA</p>
       </div>
@@ -334,17 +334,6 @@
         </button>
       </div>
 
-
-      <button id="snakeEasterEggBtn" onclick="openSnakeGame()"
-              class="hidden w-full bg-white border border-green-200 rounded-2xl p-4 flex items-center gap-3 mb-3 active:scale-[.98]">
-        <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-lg shrink-0">🐍</div>
-        <div class="text-left flex-1">
-          <p class="font-semibold text-sm text-slate-800">Easter egg desbloqueado!</p>
-          <p class="text-[11px] text-slate-400">Jogar Cobrinha</p>
-        </div>
-        <span class="text-xl text-slate-300">›</span>
-      </button>
-
       <button onclick="showScreen('stats')" class="w-full bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3 mb-3">
         <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-lg shrink-0">📈</div>
         <div class="text-left flex-1">
@@ -352,6 +341,15 @@
           <p class="text-[11px] text-slate-400">Aproveitamento, desperdício evitado e economia</p>
         </div>
         <span class="text-xl text-slate-300">›</span>
+      </button>
+
+      <button id="secretGamesBtn" onclick="openSnakeGame()" class="hidden w-full bg-slate-900 text-white rounded-2xl p-4 flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-lg shrink-0">🐍</div>
+        <div class="text-left flex-1">
+          <p class="font-semibold text-sm">Sala de jogos secreta</p>
+          <p class="text-[11px] text-white/60">Você encontrou o easter egg!</p>
+        </div>
+        <span class="text-xl text-white/40">›</span>
       </button>
 
       <div class="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between mb-3">
@@ -363,9 +361,9 @@
       </div>
 
       <div class="bg-white rounded-2xl border border-slate-200 p-5 mb-3">
-        <p class="font-semibold text-sm text-slate-800">Sobre o Sabor&Validade</p>
+        <p class="font-semibold text-sm text-slate-800">Sobre o Waste2Taste</p>
         <p class="text-sm text-slate-500 mt-2 leading-relaxed">
-          O Sabor&Validade é o seu assistente pessoal de despensa. Ele ajuda a acompanhar a
+          O Waste2Taste é o seu assistente pessoal de despensa. Ele ajuda a acompanhar a
           validade dos alimentos, sugere receitas com o que você já tem em casa e organiza
           sua lista de compras automaticamente — tudo para facilitar o dia a dia e reduzir
           o desperdício de comida.
@@ -662,6 +660,112 @@
   </div>
 </div>
 
+<!-- SALA DE JOGOS (EASTER EGG) -->
+<div id="snakeGameModal" class="hidden fixed inset-0 z-[60] modal-bg flex items-end justify-center">
+  <div class="bg-white w-full max-w-md rounded-t-[28px] overflow-hidden max-h-[95vh] overflow-y-auto">
+    <div class="p-4 flex items-center justify-between">
+      <div>
+        <p class="text-xs text-slate-400">Easter egg</p>
+        <h3 class="font-bold text-lg">Cobrinha 🐍</h3>
+      </div>
+      <button onclick="closeSnakeGame()" class="w-10 h-10 rounded-full bg-slate-100">✕</button>
+    </div>
+
+    <div class="px-5">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-sm text-slate-500">Pontos: <span id="snakeScore" class="font-bold text-slate-800">0</span></p>
+        <button onclick="toggleSnakeCustomize()" class="text-xs font-semibold text-slate-500 border border-slate-200 rounded-lg px-3 py-1.5">Personalizar</button>
+      </div>
+
+      <div id="snakeCustomizePanel" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3">
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-2">Cor</p>
+        <div class="flex gap-2 mb-3">
+          <button data-snake-color="#22c55e" onclick="setSnakeColor('#22c55e')" class="snake-opt w-8 h-8 rounded-lg" style="background:#22c55e"></button>
+          <button data-snake-color="#3b82f6" onclick="setSnakeColor('#3b82f6')" class="snake-opt w-8 h-8 rounded-lg" style="background:#3b82f6"></button>
+          <button data-snake-color="#f59e0b" onclick="setSnakeColor('#f59e0b')" class="snake-opt w-8 h-8 rounded-lg" style="background:#f59e0b"></button>
+          <button data-snake-color="#ec4899" onclick="setSnakeColor('#ec4899')" class="snake-opt w-8 h-8 rounded-lg" style="background:#ec4899"></button>
+          <button data-snake-color="#a855f7" onclick="setSnakeColor('#a855f7')" class="snake-opt w-8 h-8 rounded-lg" style="background:#a855f7"></button>
+        </div>
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-2">Formato</p>
+        <div class="flex gap-2 mb-3">
+          <button data-snake-shape="rounded" onclick="setSnakeShape('rounded')" class="snake-opt text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-slate-200">Arredondado</button>
+          <button data-snake-shape="round" onclick="setSnakeShape('round')" class="snake-opt text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-slate-200">Círculo</button>
+          <button data-snake-shape="square" onclick="setSnakeShape('square')" class="snake-opt text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-slate-200">Quadrado</button>
+          <button data-snake-shape="diamond" onclick="setSnakeShape('diamond')" class="snake-opt text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-slate-200">Losango</button>
+        </div>
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-2">Velocidade</p>
+        <input id="snakeSpeed" type="range" min="3" max="15" value="8" oninput="setSnakeSpeed(this.value)" class="w-full">
+      </div>
+
+      <canvas id="snakeCanvas" width="320" height="320" class="w-full rounded-xl bg-slate-900"></canvas>
+      <p id="snakeStatus" class="text-center text-xs text-slate-500 mt-2">Toque em Jogar para começar.</p>
+
+      <div class="grid grid-cols-3 gap-2 mt-3 max-w-[200px] mx-auto">
+        <div></div>
+        <button onclick="snakeChangeDirection('up')" class="bg-slate-100 rounded-xl py-3 font-bold text-slate-600">▲</button>
+        <div></div>
+        <button onclick="snakeChangeDirection('left')" class="bg-slate-100 rounded-xl py-3 font-bold text-slate-600">◀</button>
+        <button onclick="snakeChangeDirection('down')" class="bg-slate-100 rounded-xl py-3 font-bold text-slate-600">▼</button>
+        <button onclick="snakeChangeDirection('right')" class="bg-slate-100 rounded-xl py-3 font-bold text-slate-600">▶</button>
+      </div>
+
+      <button onclick="startSnakeGame()" class="w-full mt-3 bg-green-600 text-white py-3 rounded-xl font-semibold">Jogar / Reiniciar</button>
+
+      <div class="grid grid-cols-2 gap-2 mt-2 mb-5">
+        <button onclick="openMinesweeperGame()" class="bg-slate-50 border border-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-semibold">💣 Campo Minado</button>
+        <button onclick="openTetrisGame()" class="bg-slate-50 border border-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-semibold">🧱 Tetris</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CAMPO MINADO -->
+<div id="minesweeperModal" class="hidden fixed inset-0 z-[60] modal-bg flex items-end justify-center">
+  <div class="bg-white w-full max-w-md rounded-t-[28px] overflow-hidden max-h-[95vh] overflow-y-auto">
+    <div class="p-4 flex items-center justify-between">
+      <div>
+        <p class="text-xs text-slate-400">Easter egg</p>
+        <h3 class="font-bold text-lg">Campo Minado 💣</h3>
+      </div>
+      <button onclick="closeMinesweeperGame()" class="w-10 h-10 rounded-full bg-slate-100">✕</button>
+    </div>
+    <div class="px-5 pb-5">
+      <p id="minesweeperStatus" class="text-xs text-slate-500 mb-3">Toque para revelar. Toque longo (ou botão direito) para bandeira.</p>
+      <div id="minesweeperBoard" class="grid gap-1 justify-center"></div>
+      <button onclick="restartMinesweeper()" class="w-full mt-4 bg-green-600 text-white py-3 rounded-xl font-semibold">Reiniciar</button>
+      <button onclick="backToSnakeRoom('minesweeperModal')" class="w-full mt-2 bg-slate-100 text-slate-600 py-2.5 rounded-xl text-xs font-semibold">‹ Voltar à sala de jogos</button>
+    </div>
+  </div>
+</div>
+
+<!-- TETRIS -->
+<div id="tetrisModal" class="hidden fixed inset-0 z-[60] modal-bg flex items-end justify-center">
+  <div class="bg-white w-full max-w-md rounded-t-[28px] overflow-hidden max-h-[95vh] overflow-y-auto">
+    <div class="p-4 flex items-center justify-between">
+      <div>
+        <p class="text-xs text-slate-400">Easter egg</p>
+        <h3 class="font-bold text-lg">Tetris 🧱</h3>
+      </div>
+      <button onclick="closeTetrisGame()" class="w-10 h-10 rounded-full bg-slate-100">✕</button>
+    </div>
+    <div class="px-5 pb-5">
+      <p class="text-sm text-slate-500 mb-2">Pontos: <span id="tetrisScore" class="font-bold text-slate-800">0</span></p>
+      <canvas id="tetrisCanvas" class="mx-auto rounded-xl bg-slate-900"></canvas>
+      <p id="tetrisStatus" class="text-center text-xs text-slate-500 mt-2"></p>
+
+      <div class="grid grid-cols-4 gap-2 mt-3">
+        <button onclick="tetrisAction('left')" class="bg-slate-100 rounded-xl py-3 font-bold text-slate-600">◀</button>
+        <button onclick="tetrisAction('rotate')" class="bg-slate-100 rounded-xl py-3 font-bold text-slate-600">⟳</button>
+        <button onclick="tetrisAction('down')" class="bg-slate-100 rounded-xl py-3 font-bold text-slate-600">▼</button>
+        <button onclick="tetrisAction('right')" class="bg-slate-100 rounded-xl py-3 font-bold text-slate-600">▶</button>
+      </div>
+
+      <button onclick="startTetrisGame()" class="w-full mt-3 bg-green-600 text-white py-3 rounded-xl font-semibold">Jogar / Reiniciar</button>
+      <button onclick="backToSnakeRoom('tetrisModal')" class="w-full mt-2 bg-slate-100 text-slate-600 py-2.5 rounded-xl text-xs font-semibold">‹ Voltar à sala de jogos</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODO RESGATE -->
 <div id="rescueModal" class="hidden fixed inset-0 z-50 modal-bg flex items-end justify-center">
   <div class="bg-white w-full max-w-md rounded-t-[28px] overflow-hidden max-h-[90vh] overflow-y-auto">
@@ -687,49 +791,117 @@
   </div>
 </div>
 
-<!-- EASTER EGG — JOGO DA COBRINHA -->
-<div id="snakeGameModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
-  <div class="bg-white w-full max-w-md rounded-[28px] overflow-hidden shadow-2xl">
-    <div class="p-4 flex items-center justify-between border-b border-slate-200">
-      <div>
-        <p class="text-xs text-green-600 font-semibold">Easter egg 🐍</p>
-        <h3 class="font-extrabold text-lg">Cobrinha</h3>
-      </div>
-      <button onclick="closeSnakeGame()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-500">✕</button>
-    </div>
-
-    <div class="p-5">
-      <div class="flex items-center justify-between mb-3">
-        <p class="text-sm text-slate-500">Pontuação</p>
-        <p id="snakeScore" class="text-xl font-extrabold text-green-600">0</p>
-      </div>
-
-      <div class="flex justify-center">
-        <canvas id="snakeCanvas" width="360" height="360"></canvas>
-      </div>
-
-      <p id="snakeStatus" class="text-center text-xs text-slate-400 mt-3">
-        Use as setas, WASD ou os controles abaixo.
-      </p>
-
-      <div class="mt-4 grid grid-cols-3 gap-2 max-w-[190px] mx-auto">
-        <span></span>
-        <button class="snake-control" onclick="snakeChangeDirection('up')" aria-label="Cima">▲</button>
-        <span></span>
-        <button class="snake-control" onclick="snakeChangeDirection('left')" aria-label="Esquerda">◀</button>
-        <button class="snake-control" onclick="snakeChangeDirection('down')" aria-label="Baixo">▼</button>
-        <button class="snake-control" onclick="snakeChangeDirection('right')" aria-label="Direita">▶</button>
-      </div>
-
-      <button id="snakeRestartBtn" onclick="startSnakeGame()"
-              class="w-full mt-4 bg-green-600 text-white py-3 rounded-xl font-semibold">
-        Reiniciar
-      </button>
-    </div>
-  </div>
-</div>
-
 <script>
+/* ============================================================
+   STORAGE MODULE
+   Centraliza toda a persistência em localStorage (despensa, lista
+   de compras, histórico e preferências) em um único lugar.
+
+   Observação: a instância global chama-se "db" e não "storage",
+   porque várias funções do app já usam um parâmetro chamado
+   "storage" com outro sentido (local de guarda: despensa /
+   geladeira / congelador) — o nome seria sombreado dentro delas.
+============================================================ */
+
+class StorageManager {
+  constructor() {
+    this.KEYS = {
+      foods: "saborValidadeFoods",
+      shopping: "saborValidadeShoppingList",
+      history: "saborValidadeHistory",
+      theme: "saborValidadeTheme",
+      lastExpiryCheck: "saborValidadeLastExpiryCheck"
+    };
+  }
+
+  /* ===== GENÉRICOS ===== */
+  readList(key) {
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) || "[]");
+      return Array.isArray(saved) ? saved : [];
+    } catch (error) {
+      console.error("Erro ao ler", key, error);
+      return [];
+    }
+  }
+
+  writeList(key, list) {
+    try {
+      localStorage.setItem(key, JSON.stringify(list));
+    } catch (error) {
+      console.error("Erro ao salvar", key, error);
+    }
+  }
+
+  /* ===== DESPENSA ===== */
+  loadFoods() {
+    return this.readList(this.KEYS.foods);
+  }
+
+  saveFoods(list) {
+    this.writeList(this.KEYS.foods, list);
+  }
+
+  /* ===== LISTA DE COMPRAS ===== */
+  loadShoppingList() {
+    return this.readList(this.KEYS.shopping);
+  }
+
+  saveShoppingList(list) {
+    this.writeList(this.KEYS.shopping, list);
+  }
+
+  /* ===== HISTÓRICO ===== */
+  loadHistory() {
+    return this.readList(this.KEYS.history);
+  }
+
+  saveHistory(list) {
+    // Mantém apenas as 300 entradas mais recentes, para o localStorage
+    // não crescer indefinidamente com o uso ao longo dos meses.
+    this.writeList(this.KEYS.history, list.slice(-300));
+  }
+
+  /* ===== PREFERÊNCIAS ===== */
+  loadTheme() {
+    return localStorage.getItem(this.KEYS.theme) || "light";
+  }
+
+  saveTheme(theme) {
+    localStorage.setItem(this.KEYS.theme, theme);
+  }
+
+  /* ===== UTILITÁRIOS ===== */
+  exportData() {
+    return {
+      foods: this.loadFoods(),
+      shopping: this.loadShoppingList(),
+      history: this.loadHistory(),
+      theme: this.loadTheme(),
+      exportDate: new Date().toISOString()
+    };
+  }
+
+  importData(data) {
+    try {
+      if (Array.isArray(data.foods)) this.saveFoods(data.foods);
+      if (Array.isArray(data.shopping)) this.saveShoppingList(data.shopping);
+      if (Array.isArray(data.history)) this.saveHistory(data.history);
+      if (data.theme) this.saveTheme(data.theme);
+      return true;
+    } catch (error) {
+      console.error("Erro ao importar dados:", error);
+      return false;
+    }
+  }
+
+  clearAllData() {
+    Object.values(this.KEYS).forEach(key => localStorage.removeItem(key));
+  }
+}
+
+const db = new StorageManager();
+
 /* ============================================================
    CONFIGURAÇÕES
 ============================================================ */
@@ -1011,21 +1183,17 @@ const recipes = [
   }
 ];
 
+
 /* ============================================================
    BANCO LOCAL — DESPENSA
 ============================================================ */
 
 function loadFoods() {
-  try {
-    const saved = JSON.parse(localStorage.getItem("saborValidadeFoods") || "[]");
-    return Array.isArray(saved) ? saved : [];
-  } catch {
-    return [];
-  }
+  return db.loadFoods();
 }
 
 function saveDB() {
-  localStorage.setItem("saborValidadeFoods", JSON.stringify(foods));
+  db.saveFoods(foods);
 }
 
 // Adiciona um alimento à despensa. Se já existir um item com o mesmo nome,
@@ -1065,16 +1233,11 @@ function addOrMergeFood({ name, expiry, qty, price, storage }) {
 ============================================================ */
 
 function loadShoppingList() {
-  try {
-    const saved = JSON.parse(localStorage.getItem("saborValidadeShoppingList") || "[]");
-    return Array.isArray(saved) ? saved : [];
-  } catch {
-    return [];
-  }
+  return db.loadShoppingList();
 }
 
 function saveShoppingDB() {
-  localStorage.setItem("saborValidadeShoppingList", JSON.stringify(shoppingList));
+  db.saveShoppingList(shoppingList);
 }
 
 /* ============================================================
@@ -1082,16 +1245,11 @@ function saveShoppingDB() {
 ============================================================ */
 
 function loadHistory() {
-  try {
-    const saved = JSON.parse(localStorage.getItem("saborValidadeHistory") || "[]");
-    return Array.isArray(saved) ? saved : [];
-  } catch {
-    return [];
-  }
+  return db.loadHistory();
 }
 
 function saveHistoryDB() {
-  localStorage.setItem("saborValidadeHistory", JSON.stringify(history));
+  db.saveHistory(history);
 }
 
 // Registra 1 unidade consumida, classificando pelo status da validade
@@ -1681,29 +1839,37 @@ function renderRescueRecipes(items) {
 
 function shoppingRow(item) {
   const checked = !!item.checked;
+  const qty = item.qty || 1;
   const badge = item.auto
     ? `<span class="ml-2 shrink-0 px-2 py-0.5 rounded-lg text-[9px] font-semibold bg-orange-50 text-orange-600">sugestão</span>`
     : "";
 
-  const rightActions = checked
-    ? `
-      <button onclick="addToPantryFromShopping(${Number(item.id)})" class="px-3 bg-slate-50 text-slate-700 rounded-xl py-2 text-xs font-semibold">+ Despensa</button>
-      <button onclick="removeShoppingItem(${Number(item.id)})" class="px-3 bg-slate-50 text-slate-500 rounded-xl py-2 text-xs font-semibold">Remover</button>
-    `
+  const qtyControl = checked
+    ? ""
     : `
-      <button onclick="removeShoppingItem(${Number(item.id)})" class="px-3 bg-slate-50 text-slate-500 rounded-xl py-2 text-xs font-semibold">Remover</button>
+      <div class="flex items-center gap-0.5 bg-slate-50 rounded-lg px-0.5 shrink-0">
+        <button onclick="changeShoppingQty(${Number(item.id)}, -1)" class="w-7 h-7 rounded text-slate-500 font-semibold">−</button>
+        <span class="w-4 text-center text-xs font-semibold text-slate-700">${qty}</span>
+        <button onclick="changeShoppingQty(${Number(item.id)}, 1)" class="w-7 h-7 rounded text-slate-500 font-semibold">+</button>
+      </div>
     `;
 
+  const rightActions = checked
+    ? `<button onclick="addToPantryFromShopping(${Number(item.id)})" class="px-3 bg-green-50 text-green-700 rounded-lg py-1.5 text-[11px] font-semibold shrink-0">+ Despensa</button>`
+    : "";
+
   return `
-    <div class="bg-white rounded-2xl border border-slate-200 p-3 flex items-center gap-3">
+    <div class="bg-white rounded-2xl border border-slate-200 p-3 flex items-center gap-2">
       <button onclick="toggleShoppingItem(${Number(item.id)})" class="shop-check ${checked ? "checked" : ""}">
         ${checked ? "✓" : ""}
       </button>
       <div class="flex-1 min-w-0 flex items-center">
-        <span class="font-medium text-slate-700 truncate ${checked ? "line-through text-slate-400" : ""}">${esc(item.name)}</span>
+        <span class="font-medium text-slate-700 truncate ${checked ? "line-through text-slate-400" : ""}">${esc(item.name)}${qty > 1 && !checked ? "" : qty > 1 ? ` ×${qty}` : ""}</span>
         ${badge}
       </div>
-      <div class="flex gap-2 shrink-0">${rightActions}</div>
+      ${qtyControl}
+      ${rightActions}
+      <button onclick="removeShoppingItem(${Number(item.id)})" class="w-7 h-7 rounded text-slate-300 shrink-0 text-sm">✕</button>
     </div>
   `;
 }
@@ -1724,6 +1890,7 @@ function shoppingEmpty(kind) {
 function renderShopping() {
   const pending = shoppingList.filter(i => !i.checked);
   const bought = shoppingList.filter(i => i.checked);
+  const total = shoppingList.length;
 
   document.getElementById("shoppingPendingList").innerHTML =
     pending.map(shoppingRow).join("") || shoppingEmpty("pending");
@@ -1733,35 +1900,138 @@ function renderShopping() {
 
   document.getElementById("shopPendingCount").textContent = pending.length;
   document.getElementById("shopBoughtCount").textContent = bought.length;
+  document.getElementById("shopTotalCount").textContent = total;
 
-  const homeBadge = document.getElementById("homeShoppingBadge");
-  if (pending.length > 0) {
-    homeBadge.textContent = pending.length > 99 ? "99+" : pending.length;
-    homeBadge.classList.remove("hidden");
-  } else {
-    homeBadge.classList.add("hidden");
-  }
+  const pct = total ? Math.round((bought.length / total) * 100) : 0;
+  document.getElementById("shopProgressBar").style.width = pct + "%";
 
-  const navBadge = document.getElementById("navShoppingBadge");
-  if (pending.length > 0) {
-    navBadge.textContent = pending.length > 99 ? "99+" : pending.length;
-    navBadge.classList.remove("hidden");
-  } else {
-    navBadge.classList.add("hidden");
-  }
+  const totalUnits = pending.reduce((sum, i) => sum + (i.qty || 1), 0);
+  document.getElementById("shopEstimate").textContent = total
+    ? (pending.length
+        ? `Faltam ${totalUnits} unidade${totalUnits === 1 ? "" : "s"} para fechar a lista.`
+        : "Lista completa! Mande os itens para a despensa.")
+    : "";
+
+  // Ações em massa só aparecem quando fazem sentido.
+  document.getElementById("shoppingActions").classList.toggle("hidden", total === 0);
+  document.getElementById("shopSendAllBtn").classList.toggle("hidden", bought.length === 0);
+  document.getElementById("shopClearBtn").classList.toggle("hidden", bought.length === 0);
+
+  [["homeShoppingBadge", pending.length], ["navShoppingBadge", pending.length]].forEach(([id, count]) => {
+    const badge = document.getElementById(id);
+    if (!badge) return;
+    if (count > 0) {
+      badge.textContent = count > 99 ? "99+" : count;
+      badge.classList.remove("hidden");
+    } else {
+      badge.classList.add("hidden");
+    }
+  });
+
+  renderShoppingSuggestions();
 }
 
-function addShoppingItem() {
+// Sugere itens que costumam faltar: o que já acabou na despensa e itens
+// comuns que ainda não estão na lista. Filtra pelo que já foi digitado.
+function renderShoppingSuggestions() {
+  const wrap = document.getElementById("shoppingSuggestions");
+  if (!wrap) return;
+
   const input = document.getElementById("newShoppingItem");
-  const name = input.value.trim();
+  const typed = normalizeText(input ? input.value : "");
+
+  const common = ["Leite", "Ovo", "Pão", "Arroz", "Banana", "Tomate", "Queijo", "Frango", "Café", "Macarrão"];
+  const inList = shoppingList.filter(i => !i.checked).map(i => normalizeText(i.name));
+  const inPantry = foods.map(f => normalizeText(f.name));
+
+  const options = common
+    .filter(n => {
+      const nn = normalizeText(n);
+      if (inList.includes(nn) || inPantry.includes(nn)) return false;
+      return typed ? nn.startsWith(typed) : true;
+    })
+    .slice(0, 6);
+
+  wrap.innerHTML = options.length
+    ? options.map(n =>
+        `<button onclick="addShoppingItem('${attr(n)}')" class="shrink-0 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-600">+ ${esc(n)}</button>`
+      ).join("")
+    : "";
+}
+
+function addShoppingItem(presetName) {
+  const input = document.getElementById("newShoppingItem");
+  const name = (presetName || input.value).trim();
   if (!name) return;
 
-  shoppingList.unshift({ id: Date.now(), name, checked: false, auto: false });
+  // Se o item já estiver pendente, só soma a quantidade.
+  const normalized = normalizeText(name);
+  const existing = shoppingList.find(x => !x.checked && normalizeText(x.name) === normalized);
+
+  if (existing) {
+    existing.qty = (existing.qty || 1) + 1;
+    showToast(`"${existing.name}" agora está ×${existing.qty}.`, "🛒");
+  } else {
+    shoppingList.unshift({ id: Date.now(), name, qty: 1, checked: false, auto: false });
+  }
+
   saveShoppingDB();
   renderShopping();
 
-  input.value = "";
-  input.focus();
+  if (!presetName) {
+    input.value = "";
+    input.focus();
+  }
+}
+
+function changeShoppingQty(id, delta) {
+  const item = shoppingList.find(x => x.id === id);
+  if (!item) return;
+
+  const next = (item.qty || 1) + delta;
+  if (next < 1) return;
+
+  item.qty = next;
+  saveShoppingDB();
+  renderShopping();
+}
+
+function markAllShopping(checked) {
+  if (!shoppingList.length) return;
+  shoppingList.forEach(i => { i.checked = checked; });
+  saveShoppingDB();
+  renderShopping();
+}
+
+function clearBoughtShopping() {
+  const bought = shoppingList.filter(i => i.checked);
+  if (!bought.length) return;
+  if (!confirm(`Remover ${bought.length} item(ns) já comprado(s) da lista?`)) return;
+
+  shoppingList = shoppingList.filter(i => !i.checked);
+  saveShoppingDB();
+  renderShopping();
+}
+
+// Manda de uma vez todos os itens comprados para a despensa.
+function addAllBoughtToPantry() {
+  const bought = shoppingList.filter(i => i.checked);
+  if (!bought.length) return;
+
+  bought.forEach(item => {
+    addOrMergeFood({
+      name: item.name,
+      expiry: estimateExpiryDate(item.name, "despensa"),
+      qty: item.qty || 1,
+      storage: "despensa"
+    });
+  });
+
+  shoppingList = shoppingList.filter(i => !i.checked);
+  saveShoppingDB();
+  render();
+  renderShopping();
+  showToast(`${bought.length} item(ns) enviado(s) para a despensa.`, "✓");
 }
 
 function toggleShoppingItem(id) {
@@ -1788,7 +2058,7 @@ function addToPantryFromShopping(id) {
   addOrMergeFood({
     name: item.name,
     expiry: estimateExpiryDate(item.name, "despensa"),
-    qty: 1,
+    qty: item.qty || 1,
     storage: "despensa"
   });
 
@@ -1805,7 +2075,7 @@ function addAutoShoppingSuggestion(name) {
   const alreadyPending = shoppingList.some(x => !x.checked && normalizeText(x.name) === normalized);
   if (alreadyPending) return;
 
-  shoppingList.unshift({ id: Date.now(), name, checked: false, auto: true });
+  shoppingList.unshift({ id: Date.now(), name, qty: 1, checked: false, auto: true });
   saveShoppingDB();
   renderShopping();
 }
@@ -2814,7 +3084,7 @@ function addRecipeMissingToShopping(name) {
     const normalized = normalizeText(display);
     const alreadyPending = shoppingList.some(x => !x.checked && normalizeText(x.name) === normalized);
     if (!alreadyPending) {
-      shoppingList.unshift({ id: Date.now() + added, name: display, checked: false, auto: false });
+      shoppingList.unshift({ id: Date.now() + added, name: display, qty: 1, checked: false, auto: false });
       added++;
     }
   });
@@ -3036,17 +3306,17 @@ function checkAndNotifyExpirations() {
   if (!soon.length && !expired.length) return;
 
   const today = todayISO();
-  const lastCheck = localStorage.getItem("saborValidadeLastExpiryCheck");
+  const lastCheck = localStorage.getItem(db.KEYS.lastExpiryCheck);
   if (lastCheck === today) return;
 
-  localStorage.setItem("saborValidadeLastExpiryCheck", today);
+  localStorage.setItem(db.KEYS.lastExpiryCheck, today);
 
   showExpiryAlert(soon, expired);
 
   const parts = [];
   if (expired.length) parts.push(`${expired.length} vencido(s)`);
   if (soon.length) parts.push(`${soon.length} vencendo em breve`);
-  sendSystemNotification("Sabor&Validade", `Você tem ${parts.join(" e ")}. Confira sua despensa.`);
+  sendSystemNotification("Waste2Taste", `Você tem ${parts.join(" e ")}. Confira sua despensa.`);
 }
 
 /* ============================================================
@@ -3054,7 +3324,7 @@ function checkAndNotifyExpirations() {
 ============================================================ */
 
 function initDarkMode() {
-  const saved = localStorage.getItem("saborValidadeTheme");
+  const saved = db.loadTheme();
   if (saved === "dark") {
     document.documentElement.classList.add("dark");
   }
@@ -3064,7 +3334,7 @@ function initDarkMode() {
 function toggleDarkMode() {
   document.documentElement.classList.toggle("dark");
   const isDark = document.documentElement.classList.contains("dark");
-  localStorage.setItem("saborValidadeTheme", isDark ? "dark" : "light");
+  db.saveTheme(isDark ? "dark" : "light");
   updateDarkModeButton();
 }
 
@@ -3111,258 +3381,821 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-
 /* ============================================================
-   EASTER EGG — COBRINHA
-   Desbloqueia ao pressionar P três vezes seguidas.
+   JOGOS (EASTER EGG)
+   Acesso: pressionar a tecla "P" 3 vezes seguidas revela um botão
+   escondido na aba Perfil.
 ============================================================ */
 
-let pPressCount = 0;
-let pPressTimer = null;
+class GamesManager {
+  constructor() {
+    this.snakeConfig = { color: "#22c55e", shape: "rounded", speed: 8 };
+    this.loadGamePreferences();
+  }
 
-let snakeCtx = null;
-let snake = [];
-let snakeFood = { x: 0, y: 0 };
-let snakeDirection = { x: 1, y: 0 };
-let snakeNextDirection = { x: 1, y: 0 };
-let snakeScoreValue = 0;
-let snakeLoop = null;
-let snakeRunning = false;
+  loadGamePreferences() {
+    try {
+      const saved = localStorage.getItem("saborValidadeGamePrefs");
+      if (saved) this.snakeConfig = { ...this.snakeConfig, ...JSON.parse(saved) };
+    } catch (e) {
+      console.warn("Preferências de jogo inválidas, usando padrão.", e);
+    }
+  }
 
-const SNAKE_GRID = 18;
-const SNAKE_CELL = 20;
-
-function unlockSnakeEasterEgg() {
-  const btn = document.getElementById("snakeEasterEggBtn");
-  if (btn) btn.classList.remove("hidden");
-  showToast("Easter egg desbloqueado! 🐍", "🎮");
+  saveGamePreferences() {
+    try {
+      localStorage.setItem("saborValidadeGamePrefs", JSON.stringify(this.snakeConfig));
+    } catch (e) {
+      console.warn("Não foi possível salvar preferências de jogo.", e);
+    }
+  }
 }
 
-document.addEventListener("keydown", e => {
-  // Não conta P quando o usuário está digitando em um campo.
-  const tag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : "";
-  const isTyping = tag === "input" || tag === "textarea" || tag === "select" || e.target?.isContentEditable;
+const gamesManager = new GamesManager();
 
-  if (!isTyping && e.key.toLowerCase() === "p") {
-    pPressCount++;
-    clearTimeout(pPressTimer);
-    pPressTimer = setTimeout(() => { pPressCount = 0; }, 1200);
+/* ---------- COBRINHA ---------- */
 
-    if (pPressCount >= 3) {
-      pPressCount = 0;
-      clearTimeout(pPressTimer);
-      unlockSnakeEasterEgg();
-    }
+class SnakeGame {
+  constructor(canvasId = "snakeCanvas") {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext("2d");
+    this.gridSize = 20;
+    this.gameWidth = this.canvas.width / this.gridSize;
+    this.gameHeight = this.canvas.height / this.gridSize;
+
+    this.rafId = null;        // requestAnimationFrame para desenhar a 60fps
+    this.lastStepTime = 0;    // quando foi o último passo lógico da cobra
+    this.stepProgress = 0;    // 0→1 entre uma casa e outra (para interpolar)
+
+    this.reset();
+    this.setupControls();
   }
 
-  if (document.getElementById("snakeGameModal") &&
-      !document.getElementById("snakeGameModal").classList.contains("hidden")) {
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d", "W", "A", "S", "D"].includes(e.key)) {
+  reset() {
+    const cx = Math.floor(this.gameWidth / 2);
+    const cy = Math.floor(this.gameHeight / 2);
+
+    // Começa com 3 segmentos para o corpo já ser visível.
+    this.snake = [{ x: cx, y: cy }, { x: cx - 1, y: cy }, { x: cx - 2, y: cy }];
+    this.prevSnake = this.snake.map(s => ({ ...s }));
+    this.food = this.generateFood();
+    this.direction = { x: 1, y: 0 };
+    this.nextDirection = { x: 1, y: 0 };
+    this.score = 0;
+    this.gameRunning = false;
+    this.stepProgress = 0;
+    document.getElementById("snakeScore").textContent = "0";
+  }
+
+  generateFood() {
+    let spot;
+    do {
+      spot = {
+        x: Math.floor(Math.random() * this.gameWidth),
+        y: Math.floor(Math.random() * this.gameHeight)
+      };
+    } while (this.snake && this.snake.some(s => s.x === spot.x && s.y === spot.y));
+    return spot;
+  }
+
+  setupControls() {
+    document.addEventListener("keydown", e => this.handleKeyPress(e));
+  }
+
+  handleKeyPress(e) {
+    if (!this.gameRunning) return;
+
+    const arrowMap = {
+      arrowup: { x: 0, y: -1 }, arrowdown: { x: 0, y: 1 },
+      arrowleft: { x: -1, y: 0 }, arrowright: { x: 1, y: 0 },
+      w: { x: 0, y: -1 }, s: { x: 0, y: 1 },
+      a: { x: -1, y: 0 }, d: { x: 1, y: 0 }
+    };
+
+    const dir = arrowMap[e.key.toLowerCase()];
+    if (dir) {
       e.preventDefault();
-      const key = e.key.toLowerCase();
-      if (e.key === "ArrowUp" || key === "w") snakeChangeDirection("up");
-      if (e.key === "ArrowDown" || key === "s") snakeChangeDirection("down");
-      if (e.key === "ArrowLeft" || key === "a") snakeChangeDirection("left");
-      if (e.key === "ArrowRight" || key === "d") snakeChangeDirection("right");
+      this.changeDirection(dir);
     }
   }
-});
+
+  changeDirection(dir) {
+    if (!this.gameRunning || !dir) return;
+    // Impede meia-volta de 180°, que mataria a cobra na hora.
+    if (!(dir.x === -this.direction.x && dir.y === -this.direction.y)) {
+      this.nextDirection = dir;
+    }
+  }
+
+  // Um "passo" lógico: a cobra anda uma casa.
+  step() {
+    this.prevSnake = this.snake.map(s => ({ ...s }));
+    this.direction = this.nextDirection;
+
+    const head = { ...this.snake[0] };
+    head.x += this.direction.x;
+    head.y += this.direction.y;
+
+    // Bater na parede agora mata (antes atravessava para o outro lado).
+    if (head.x < 0 || head.x >= this.gameWidth || head.y < 0 || head.y >= this.gameHeight) {
+      this.endGame("Você bateu na parede!");
+      return;
+    }
+
+    if (this.snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+      this.endGame("Você se mordeu!");
+      return;
+    }
+
+    this.snake.unshift(head);
+
+    if (head.x === this.food.x && head.y === this.food.y) {
+      this.score += 10;
+      this.food = this.generateFood();
+      document.getElementById("snakeScore").textContent = this.score;
+    } else {
+      this.snake.pop();
+    }
+  }
+
+  // Posição suavizada de um segmento, interpolando entre onde ele estava
+  // e onde está agora — é isso que dá a sensação de 60fps.
+  interpolated(index, t) {
+    const cur = this.snake[index];
+    const prev = this.prevSnake[index] || this.prevSnake[this.prevSnake.length - 1] || cur;
+
+    // Se a distância for grande, houve algo atípico: não interpola.
+    if (Math.abs(cur.x - prev.x) > 1 || Math.abs(cur.y - prev.y) > 1) return { x: cur.x, y: cur.y };
+
+    return {
+      x: prev.x + (cur.x - prev.x) * t,
+      y: prev.y + (cur.y - prev.y) * t
+    };
+  }
+
+  draw(t = 1) {
+    const ctx = this.ctx;
+    const g = this.gridSize;
+
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // Moldura indicando que a borda é mortal.
+    ctx.strokeStyle = "rgba(248,113,113,.45)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(1, 1, this.canvas.width - 2, this.canvas.height - 2);
+
+    const { color, shape } = gamesManager.snakeConfig;
+
+    // Comida com um leve pulsar.
+    const pulse = 1 + Math.sin(Date.now() / 200) * 0.08;
+    this.drawSegment(this.food.x * g, this.food.y * g, g * pulse, "#ef4444", "round");
+
+    // Corpo: desenhado do rabo para a cabeça, afinando levemente no fim.
+    for (let i = this.snake.length - 1; i >= 1; i--) {
+      const p = this.interpolated(i, t);
+      const taper = 1 - (i / this.snake.length) * 0.25;
+      ctx.fillStyle = i % 2 === 0 ? color : this.lighten(color, 8);
+      this.drawSegment(p.x * g, p.y * g, g * taper, ctx.fillStyle, shape);
+    }
+
+    // Cabeça: maior, mais clara e com olhos virados para a direção.
+    const h = this.interpolated(0, t);
+    this.drawHead(h.x * g, h.y * g, g);
+  }
+
+  drawHead(x, y, size) {
+    const ctx = this.ctx;
+    const { color, shape } = gamesManager.snakeConfig;
+
+    this.drawSegment(x, y, size * 1.05, this.lighten(color, 30), shape === "square" ? "square" : "round");
+
+    // Olhos posicionados conforme a direção atual.
+    const d = this.direction;
+    const cx = x + size / 2;
+    const cy = y + size / 2;
+    const off = size * 0.19;
+    const eyeR = Math.max(1.6, size * 0.10);
+
+    // Perpendicular à direção, para separar os dois olhos.
+    const px = -d.y, py = d.x;
+    const fx = d.x * off * 0.8, fy = d.y * off * 0.8;
+
+    [-1, 1].forEach(sideSign => {
+      const ex = cx + fx + px * off * sideSign;
+      const ey = cy + fy + py * off * sideSign;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(ex, ey, eyeR, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#0f172a";
+      ctx.beginPath();
+      ctx.arc(ex + d.x * eyeR * 0.35, ey + d.y * eyeR * 0.35, eyeR * 0.55, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  drawSegment(x, y, size, color, shape) {
+    const ctx = this.ctx;
+    const full = this.gridSize;
+    const inset = (full - size) / 2;
+    const padding = 1.5;
+
+    const x1 = x + inset + padding;
+    const y1 = y + inset + padding;
+    const w = size - padding * 2;
+    const h = size - padding * 2;
+
+    ctx.fillStyle = color;
+
+    if (shape === "round") this.drawRoundedRect(x1, y1, w, h, w / 2);
+    else if (shape === "square") ctx.fillRect(x1, y1, w, h);
+    else if (shape === "diamond") this.drawDiamond(x1 + w / 2, y1 + h / 2, w / 2);
+    else this.drawRoundedRect(x1, y1, w, h, Math.min(5, w / 3));
+  }
+
+  drawRoundedRect(x, y, w, h, r) {
+    const ctx = this.ctx;
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.fill();
+  }
+
+  drawDiamond(cx, cy, size) {
+    const ctx = this.ctx;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - size);
+    ctx.lineTo(cx + size, cy);
+    ctx.lineTo(cx, cy + size);
+    ctx.lineTo(cx - size, cy);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  lighten(color, percent) {
+    const hex = color.replace("#", "");
+    const ch = i => Math.min(255, Math.round(parseInt(hex.substring(i, i + 2), 16) * (1 + percent / 100)));
+    return `#${ch(0).toString(16).padStart(2, "0")}${ch(2).toString(16).padStart(2, "0")}${ch(4).toString(16).padStart(2, "0")}`;
+  }
+
+  stop() {
+    this.gameRunning = false;
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
+  }
+
+  endGame(reason) {
+    this.stop();
+    this.draw(1);
+    document.getElementById("snakeStatus").textContent =
+      `${reason || "Game over!"} Pontuação: ${this.score}`;
+  }
+
+  start() {
+    this.stop();
+    this.reset();
+    this.gameRunning = true;
+    document.getElementById("snakeStatus").textContent = "Use as setas, WASD ou os botões. Não encoste nas bordas!";
+
+    this.lastStepTime = performance.now();
+
+    // O desenho roda a cada frame (~60fps) e a lógica só a cada
+    // "stepInterval" ms — a interpolação costura os dois.
+    const frame = now => {
+      if (!this.gameRunning) return;
+
+      const stepInterval = 1000 / gamesManager.snakeConfig.speed;
+      let elapsed = now - this.lastStepTime;
+
+      while (elapsed >= stepInterval && this.gameRunning) {
+        this.step();
+        this.lastStepTime += stepInterval;
+        elapsed -= stepInterval;
+      }
+
+      if (!this.gameRunning) return;
+
+      this.stepProgress = Math.min(1, elapsed / stepInterval);
+      this.draw(this.stepProgress);
+      this.rafId = requestAnimationFrame(frame);
+    };
+
+    this.rafId = requestAnimationFrame(frame);
+  }
+}
+
+/* ---------- CAMPO MINADO ---------- */
+
+class MinesweeperGame {
+  constructor(rows = 8, cols = 8, mines = 10) {
+    this.rows = rows;
+    this.cols = cols;
+    this.mines = mines;
+  }
+
+  init() {
+    this.board = Array.from({ length: this.rows }, () => Array(this.cols).fill(0));
+    this.revealed = Array.from({ length: this.rows }, () => Array(this.cols).fill(false));
+    this.flagged = Array.from({ length: this.rows }, () => Array(this.cols).fill(false));
+    this.gameRunning = true;
+    this.gameWon = false;
+
+    let placed = 0;
+    while (placed < this.mines) {
+      const r = Math.floor(Math.random() * this.rows);
+      const c = Math.floor(Math.random() * this.cols);
+      if (this.board[r][c] !== "M") {
+        this.board[r][c] = "M";
+        placed++;
+      }
+    }
+
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        if (this.board[r][c] === "M") continue;
+        let count = 0;
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            const nr = r + dr, nc = c + dc;
+            if (nr >= 0 && nr < this.rows && nc >= 0 && nc < this.cols && this.board[nr][nc] === "M") count++;
+          }
+        }
+        this.board[r][c] = count;
+      }
+    }
+  }
+
+  reveal(r, c) {
+    if (!this.gameRunning || this.revealed[r][c] || this.flagged[r][c]) return;
+
+    this.revealed[r][c] = true;
+
+    if (this.board[r][c] === "M") {
+      this.gameRunning = false;
+      this.revealAll();
+      return;
+    }
+
+    if (this.board[r][c] === 0) {
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const nr = r + dr, nc = c + dc;
+          if (nr >= 0 && nr < this.rows && nc >= 0 && nc < this.cols && !this.revealed[nr][nc]) {
+            this.reveal(nr, nc);
+          }
+        }
+      }
+    }
+
+    this.checkWin();
+  }
+
+  toggleFlag(r, c) {
+    if (!this.gameRunning || this.revealed[r][c]) return;
+    this.flagged[r][c] = !this.flagged[r][c];
+  }
+
+  revealAll() {
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) this.revealed[r][c] = true;
+    }
+  }
+
+  checkWin() {
+    let safeRevealed = 0;
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        if (this.revealed[r][c] && this.board[r][c] !== "M") safeRevealed++;
+      }
+    }
+    if (safeRevealed === this.rows * this.cols - this.mines) {
+      this.gameRunning = false;
+      this.gameWon = true;
+    }
+  }
+
+  render() {
+    const container = document.getElementById("minesweeperBoard");
+    container.innerHTML = "";
+    container.style.gridTemplateColumns = `repeat(${this.cols}, 32px)`;
+
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        const btn = document.createElement("button");
+        btn.className = "mine-cell";
+
+        if (this.revealed[r][c]) {
+          btn.classList.add("revealed");
+          if (this.board[r][c] === "M") btn.textContent = "💣";
+          else if (this.board[r][c] > 0) btn.textContent = this.board[r][c];
+        } else if (this.flagged[r][c]) {
+          btn.classList.add("flagged");
+          btn.textContent = "🚩";
+        }
+
+        // Clique normal revela; clique longo (ou botão direito) marca bandeira.
+        let pressTimer = null;
+        let longPressed = false;
+
+        btn.addEventListener("click", () => {
+          if (longPressed) { longPressed = false; return; }
+          this.reveal(r, c);
+          this.render();
+        });
+
+        btn.addEventListener("contextmenu", e => {
+          e.preventDefault();
+          this.toggleFlag(r, c);
+          this.render();
+        });
+
+        btn.addEventListener("touchstart", () => {
+          pressTimer = setTimeout(() => {
+            longPressed = true;
+            this.toggleFlag(r, c);
+            this.render();
+          }, 450);
+        }, { passive: true });
+
+        const cancelPress = () => clearTimeout(pressTimer);
+        btn.addEventListener("touchend", cancelPress);
+        btn.addEventListener("touchmove", cancelPress);
+
+        container.appendChild(btn);
+      }
+    }
+
+    const status = document.getElementById("minesweeperStatus");
+    if (this.gameWon) status.textContent = "🎉 Você venceu!";
+    else if (!this.gameRunning) status.textContent = "💥 Você acertou uma mina. Reinicie para tentar de novo.";
+    else status.textContent = "Toque para revelar. Toque longo (ou botão direito) para bandeira.";
+  }
+}
+
+/* ---------- TETRIS ---------- */
+
+class TetrisGame {
+  constructor(canvasId = "tetrisCanvas") {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext("2d");
+    this.gridWidth = 10;
+    this.gridHeight = 20;
+    this.cellSize = 16;
+    this.gameLoop = null;
+
+    this.canvas.width = this.gridWidth * this.cellSize;
+    this.canvas.height = this.gridHeight * this.cellSize;
+
+    this.pieces = [
+      { shape: [[1, 1, 1, 1]], color: "#22d3ee" },
+      { shape: [[1, 1], [1, 1]], color: "#facc15" },
+      { shape: [[0, 1, 0], [1, 1, 1]], color: "#c084fc" },
+      { shape: [[1, 0, 0], [1, 1, 1]], color: "#60a5fa" },
+      { shape: [[0, 0, 1], [1, 1, 1]], color: "#fb923c" },
+      { shape: [[0, 1, 1], [1, 1, 0]], color: "#4ade80" },
+      { shape: [[1, 1, 0], [0, 1, 1]], color: "#f87171" }
+    ];
+
+    this.resetState();
+    this.setupControls();
+  }
+
+  resetState() {
+    this.board = Array.from({ length: this.gridHeight }, () => Array(this.gridWidth).fill(0));
+    this.currentPiece = null;
+    this.score = 0;
+    this.gameRunning = false;
+  }
+
+  setupControls() {
+    document.addEventListener("keydown", e => this.handleKeyPress(e));
+  }
+
+  handleKeyPress(e) {
+    if (!this.gameRunning || !this.currentPiece) return;
+
+    const key = e.key.toLowerCase();
+    if (["arrowleft", "a"].includes(key)) { e.preventDefault(); this.movePiece(-1, 0); }
+    else if (["arrowright", "d"].includes(key)) { e.preventDefault(); this.movePiece(1, 0); }
+    else if (["arrowdown", "s"].includes(key)) { e.preventDefault(); this.movePiece(0, 1); }
+    else if (["arrowup", "w"].includes(key)) { e.preventDefault(); this.rotatePiece(); }
+    else return;
+
+    this.draw();
+  }
+
+  spawnPiece() {
+    const t = this.pieces[Math.floor(Math.random() * this.pieces.length)];
+    this.currentPiece = {
+      x: Math.floor(this.gridWidth / 2) - 1,
+      y: 0,
+      shape: t.shape.map(row => [...row]),
+      color: t.color
+    };
+  }
+
+  movePiece(dx, dy) {
+    if (!this.currentPiece) return;
+
+    this.currentPiece.x += dx;
+    this.currentPiece.y += dy;
+
+    if (!this.isValidPosition()) {
+      this.currentPiece.x -= dx;
+      this.currentPiece.y -= dy;
+      if (dy > 0) this.lockPiece();
+    }
+  }
+
+  rotatePiece() {
+    if (!this.currentPiece) return;
+    const original = this.currentPiece.shape;
+    this.currentPiece.shape = this.rotate90(original);
+    if (!this.isValidPosition()) this.currentPiece.shape = original;
+  }
+
+  rotate90(shape) {
+    const rows = shape.length, cols = shape[0].length;
+    const rotated = Array.from({ length: cols }, () => Array(rows).fill(0));
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) rotated[c][rows - 1 - r] = shape[r][c];
+    }
+    return rotated;
+  }
+
+  isValidPosition() {
+    if (!this.currentPiece) return false;
+    const p = this.currentPiece;
+
+    for (let r = 0; r < p.shape.length; r++) {
+      for (let c = 0; c < p.shape[r].length; c++) {
+        if (!p.shape[r][c]) continue;
+        const x = p.x + c, y = p.y + r;
+        if (x < 0 || x >= this.gridWidth || y >= this.gridHeight) return false;
+        if (y >= 0 && this.board[y][x]) return false;
+      }
+    }
+    return true;
+  }
+
+  lockPiece() {
+    const p = this.currentPiece;
+    if (!p) return;
+
+    for (let r = 0; r < p.shape.length; r++) {
+      for (let c = 0; c < p.shape[r].length; c++) {
+        if (!p.shape[r][c]) continue;
+        const x = p.x + c, y = p.y + r;
+        if (y >= 0) this.board[y][x] = p.color;
+      }
+    }
+
+    this.clearLines();
+    this.spawnPiece();
+
+    if (!this.isValidPosition()) this.endGame();
+  }
+
+  clearLines() {
+    let cleared = 0;
+    for (let r = this.gridHeight - 1; r >= 0; r--) {
+      if (this.board[r].every(cell => cell !== 0)) {
+        this.board.splice(r, 1);
+        this.board.unshift(Array(this.gridWidth).fill(0));
+        cleared++;
+        r++;
+      }
+    }
+    if (cleared) {
+      this.score += cleared * 100;
+      document.getElementById("tetrisScore").textContent = this.score;
+    }
+  }
+
+  draw() {
+    this.ctx.fillStyle = "#0f172a";
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    for (let r = 0; r < this.gridHeight; r++) {
+      for (let c = 0; c < this.gridWidth; c++) {
+        if (this.board[r][c]) {
+          this.ctx.fillStyle = this.board[r][c];
+          this.ctx.fillRect(c * this.cellSize + 1, r * this.cellSize + 1, this.cellSize - 2, this.cellSize - 2);
+        }
+      }
+    }
+
+    const p = this.currentPiece;
+    if (p) {
+      this.ctx.fillStyle = p.color;
+      for (let r = 0; r < p.shape.length; r++) {
+        for (let c = 0; c < p.shape[r].length; c++) {
+          if (!p.shape[r][c]) continue;
+          this.ctx.fillRect((p.x + c) * this.cellSize + 1, (p.y + r) * this.cellSize + 1, this.cellSize - 2, this.cellSize - 2);
+        }
+      }
+    }
+  }
+
+  stop() {
+    this.gameRunning = false;
+    if (this.gameLoop) {
+      clearInterval(this.gameLoop);
+      this.gameLoop = null;
+    }
+  }
+
+  endGame() {
+    this.stop();
+    document.getElementById("tetrisStatus").textContent = `Game over! Pontuação: ${this.score}`;
+  }
+
+  start() {
+    this.stop();
+    this.resetState();
+    document.getElementById("tetrisScore").textContent = "0";
+    document.getElementById("tetrisStatus").textContent = "Setas/WASD ou os botões abaixo.";
+    this.gameRunning = true;
+    this.spawnPiece();
+    this.draw();
+
+    this.gameLoop = setInterval(() => {
+      this.movePiece(0, 1);
+      this.draw();
+    }, 500);
+  }
+}
+
+/* ---------- CONTROLES DE UI DOS JOGOS ---------- */
+
+let snakeGameInstance = null;
+let minesweeperInstance = null;
+let tetrisInstance = null;
 
 function openSnakeGame() {
-  const modal = document.getElementById("snakeGameModal");
-  if (!modal) return;
-  modal.classList.remove("hidden");
+  document.getElementById("snakeGameModal").classList.remove("hidden");
+  syncSnakeCustomizeUI();
   startSnakeGame();
 }
 
 function closeSnakeGame() {
-  const modal = document.getElementById("snakeGameModal");
-  if (modal) modal.classList.add("hidden");
-  stopSnakeGame();
+  document.getElementById("snakeGameModal").classList.add("hidden");
+  if (snakeGameInstance) snakeGameInstance.stop();
 }
 
 function startSnakeGame() {
-  const canvas = document.getElementById("snakeCanvas");
-  if (!canvas) return;
-
-  snakeCtx = canvas.getContext("2d");
-  snake = [
-    { x: 8, y: 9 },
-    { x: 7, y: 9 },
-    { x: 6, y: 9 }
-  ];
-  snakeDirection = { x: 1, y: 0 };
-  snakeNextDirection = { x: 1, y: 0 };
-  snakeScoreValue = 0;
-  snakeRunning = true;
-
-  document.getElementById("snakeScore").textContent = "0";
-  document.getElementById("snakeStatus").textContent =
-    "Pegue as maçãs e não bata nas paredes ou em você mesmo.";
-
-  placeSnakeFood();
-  drawSnakeGame();
-
-  clearInterval(snakeLoop);
-  snakeLoop = setInterval(updateSnakeGame, 125);
-}
-
-function stopSnakeGame() {
-  snakeRunning = false;
-  clearInterval(snakeLoop);
-  snakeLoop = null;
+  if (!snakeGameInstance) snakeGameInstance = new SnakeGame();
+  snakeGameInstance.start();
 }
 
 function snakeChangeDirection(dir) {
-  if (!snakeRunning) return;
-
-  const directions = {
-    up: { x: 0, y: -1 },
-    down: { x: 0, y: 1 },
-    left: { x: -1, y: 0 },
-    right: { x: 1, y: 0 }
+  if (!snakeGameInstance) return;
+  const dirMap = {
+    up: { x: 0, y: -1 }, down: { x: 0, y: 1 },
+    left: { x: -1, y: 0 }, right: { x: 1, y: 0 }
   };
-
-  const next = directions[dir];
-  if (!next) return;
-
-  // Impede a cobra de virar diretamente para trás.
-  if (next.x === -snakeDirection.x && next.y === -snakeDirection.y) return;
-
-  snakeNextDirection = next;
+  snakeGameInstance.changeDirection(dirMap[dir]);
 }
 
-function placeSnakeFood() {
-  do {
-    snakeFood = {
-      x: Math.floor(Math.random() * SNAKE_GRID),
-      y: Math.floor(Math.random() * SNAKE_GRID)
-    };
-  } while (snake.some(part => part.x === snakeFood.x && part.y === snakeFood.y));
+function setSnakeColor(color) {
+  gamesManager.snakeConfig.color = color;
+  gamesManager.saveGamePreferences();
+  syncSnakeCustomizeUI();
+  if (snakeGameInstance) snakeGameInstance.draw();
 }
 
-function updateSnakeGame() {
-  if (!snakeRunning) return;
+function setSnakeShape(shape) {
+  gamesManager.snakeConfig.shape = shape;
+  gamesManager.saveGamePreferences();
+  syncSnakeCustomizeUI();
+  if (snakeGameInstance) snakeGameInstance.draw();
+}
 
-  snakeDirection = snakeNextDirection;
+function setSnakeSpeed(value) {
+  gamesManager.snakeConfig.speed = Number(value) || 8;
+  gamesManager.saveGamePreferences();
+  // A velocidade nova vale a partir da próxima partida.
+}
 
-  const head = {
-    x: snake[0].x + snakeDirection.x,
-    y: snake[0].y + snakeDirection.y
-  };
+function syncSnakeCustomizeUI() {
+  const { color, shape, speed } = gamesManager.snakeConfig;
 
-  const hitWall =
-    head.x < 0 || head.x >= SNAKE_GRID ||
-    head.y < 0 || head.y >= SNAKE_GRID;
+  document.querySelectorAll("[data-snake-color]").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.snakeColor === color);
+  });
+  document.querySelectorAll("[data-snake-shape]").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.snakeShape === shape);
+  });
 
-  const hitSelf = snake.some(part => part.x === head.x && part.y === head.y);
+  const speedEl = document.getElementById("snakeSpeed");
+  if (speedEl) speedEl.value = speed;
+}
 
-  if (hitWall || hitSelf) {
-    snakeGameOver();
+function toggleSnakeCustomize() {
+  document.getElementById("snakeCustomizePanel").classList.toggle("hidden");
+}
+
+function openMinesweeperGame() {
+  closeSnakeGame();
+  document.getElementById("minesweeperModal").classList.remove("hidden");
+  restartMinesweeper();
+}
+
+function closeMinesweeperGame() {
+  document.getElementById("minesweeperModal").classList.add("hidden");
+}
+
+function restartMinesweeper() {
+  if (!minesweeperInstance) minesweeperInstance = new MinesweeperGame(8, 8, 10);
+  minesweeperInstance.init();
+  minesweeperInstance.render();
+}
+
+function openTetrisGame() {
+  closeSnakeGame();
+  document.getElementById("tetrisModal").classList.remove("hidden");
+  startTetrisGame();
+}
+
+function closeTetrisGame() {
+  document.getElementById("tetrisModal").classList.add("hidden");
+  if (tetrisInstance) tetrisInstance.stop();
+}
+
+function startTetrisGame() {
+  if (!tetrisInstance) tetrisInstance = new TetrisGame();
+  tetrisInstance.start();
+}
+
+function tetrisAction(action) {
+  if (!tetrisInstance || !tetrisInstance.gameRunning) return;
+  if (action === "left") tetrisInstance.movePiece(-1, 0);
+  else if (action === "right") tetrisInstance.movePiece(1, 0);
+  else if (action === "down") tetrisInstance.movePiece(0, 1);
+  else if (action === "rotate") tetrisInstance.rotatePiece();
+  tetrisInstance.draw();
+}
+
+function backToSnakeRoom(fromModalId) {
+  document.getElementById(fromModalId).classList.add("hidden");
+  if (fromModalId === "tetrisModal" && tetrisInstance) tetrisInstance.stop();
+  openSnakeGame();
+}
+
+/* ---------- DETECTOR DO EASTER EGG: "P" 3× SEGUIDAS ---------- */
+
+let pKeyCount = 0;
+let pKeyTimer = null;
+
+function registerSecretKey(e) {
+  // Ignora se a pessoa estiver digitando em um campo de texto.
+  const tag = (e.target.tagName || "").toLowerCase();
+  if (tag === "input" || tag === "textarea" || tag === "select") return;
+
+  if (e.key.toLowerCase() !== "p") {
+    pKeyCount = 0;
+    clearTimeout(pKeyTimer);
     return;
   }
 
-  snake.unshift(head);
+  pKeyCount++;
+  clearTimeout(pKeyTimer);
+  // Se demorar mais de 1,2s entre as teclas, a sequência reinicia.
+  pKeyTimer = setTimeout(() => { pKeyCount = 0; }, 1200);
 
-  const ateFood = head.x === snakeFood.x && head.y === snakeFood.y;
-
-  if (ateFood) {
-    snakeScoreValue++;
-    document.getElementById("snakeScore").textContent = snakeScoreValue;
-    placeSnakeFood();
-  } else {
-    snake.pop();
-  }
-
-  drawSnakeGame();
-}
-
-function snakeGameOver() {
-  snakeRunning = false;
-  clearInterval(snakeLoop);
-  snakeLoop = null;
-  document.getElementById("snakeStatus").textContent =
-    `Fim de jogo! Você fez ${snakeScoreValue} ponto${snakeScoreValue === 1 ? "" : "s"}.`;
-  drawSnakeGame(true);
-}
-
-function drawSnakeGame(gameOver = false) {
-  if (!snakeCtx) return;
-
-  const canvas = snakeCtx.canvas;
-
-  snakeCtx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Fundo quadriculado discreto.
-  snakeCtx.fillStyle = document.documentElement.classList.contains("dark")
-    ? "#0f1a14"
-    : "#f7faf8";
-  snakeCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-  snakeCtx.strokeStyle = document.documentElement.classList.contains("dark")
-    ? "#1d2b24"
-    : "#e8efeb";
-  snakeCtx.lineWidth = 1;
-
-  for (let i = 0; i <= SNAKE_GRID; i++) {
-    const p = i * SNAKE_CELL;
-    snakeCtx.beginPath();
-    snakeCtx.moveTo(p, 0);
-    snakeCtx.lineTo(p, canvas.height);
-    snakeCtx.stroke();
-    snakeCtx.beginPath();
-    snakeCtx.moveTo(0, p);
-    snakeCtx.lineTo(canvas.width, p);
-    snakeCtx.stroke();
-  }
-
-  // Comida.
-  snakeCtx.font = `${SNAKE_CELL - 2}px system-ui`;
-  snakeCtx.textAlign = "center";
-  snakeCtx.textBaseline = "middle";
-  snakeCtx.fillText("🍎", snakeFood.x * SNAKE_CELL + SNAKE_CELL / 2,
-                         snakeFood.y * SNAKE_CELL + SNAKE_CELL / 2 + 1);
-
-  // Cobra.
-  snake.forEach((part, index) => {
-    const pad = 2;
-    const x = part.x * SNAKE_CELL + pad;
-    const y = part.y * SNAKE_CELL + pad;
-    const size = SNAKE_CELL - pad * 2;
-
-    snakeCtx.fillStyle = index === 0 ? "#16a34a" : "#3a9b5c";
-    snakeCtx.beginPath();
-    snakeCtx.roundRect(x, y, size, size, 5);
-    snakeCtx.fill();
-  });
-
-  // Olhos na cabeça.
-  if (snake.length) {
-    const head = snake[0];
-    const cx = head.x * SNAKE_CELL + SNAKE_CELL / 2;
-    const cy = head.y * SNAKE_CELL + SNAKE_CELL / 2;
-    const eyeOffset = 4;
-
-    snakeCtx.fillStyle = "#ffffff";
-    snakeCtx.beginPath();
-    snakeCtx.arc(cx - (snakeDirection.y !== 0 ? eyeOffset : 0),
-                 cy - (snakeDirection.x !== 0 ? eyeOffset : 0), 2, 0, Math.PI * 2);
-    snakeCtx.fill();
-    snakeCtx.beginPath();
-    snakeCtx.arc(cx + (snakeDirection.y !== 0 ? eyeOffset : 0),
-                 cy + (snakeDirection.x !== 0 ? eyeOffset : 0), 2, 0, Math.PI * 2);
-    snakeCtx.fill();
-  }
-
-  if (gameOver) {
-    snakeCtx.fillStyle = "rgba(15,23,18,.55)";
-    snakeCtx.fillRect(0, 0, canvas.width, canvas.height);
-    snakeCtx.fillStyle = "#ffffff";
-    snakeCtx.font = "800 26px system-ui";
-    snakeCtx.textAlign = "center";
-    snakeCtx.fillText("Fim de jogo", canvas.width / 2, canvas.height / 2);
+  if (pKeyCount >= 3) {
+    pKeyCount = 0;
+    clearTimeout(pKeyTimer);
+    unlockSecretGames();
   }
 }
+
+function unlockSecretGames() {
+  const btn = document.getElementById("secretGamesBtn");
+  if (!btn) return;
+
+  const wasHidden = btn.classList.contains("hidden");
+  btn.classList.remove("hidden");
+  showScreen("profile");
+  btn.scrollIntoView({ behavior: "smooth", block: "center" });
+
+  if (wasHidden) showToast("Você desbloqueou a sala de jogos secreta!", "🐍");
+}
+
+document.addEventListener("keydown", registerSecretKey);
 
 /* ============================================================
    TECLADO / MODAIS
@@ -3373,6 +4206,8 @@ document.addEventListener("keydown", e => {
     closeManualAdd();
     closeRecipeDetail();
     closeSnakeGame();
+    closeMinesweeperGame();
+    closeTetrisGame();
     if (!document.getElementById("scannerModal").classList.contains("hidden")) {
       closeScanner();
     }

@@ -1,6 +1,6 @@
 {
-  "name": "Sabor&Validade",
-  "short_name": "Sabor&Validade",
+  "name": "Waste2Taste",
+  "short_name": "Waste2Taste",
   "description": "Despensa inteligente com IA: controle a validade dos alimentos, escaneie produtos, gere lista de compras e receba sugestões de receitas.",
   "start_url": "./index.html",
   "scope": "./",
@@ -10,7 +10,11 @@
   "theme_color": "#DDF5E6",
   "lang": "pt-BR",
   "dir": "ltr",
-  "categories": ["food", "lifestyle", "utilities"],
+  "categories": [
+    "food",
+    "lifestyle",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "icon-192.png",
