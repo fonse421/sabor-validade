@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Chess — Waste2Taste</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: light; }
+    body { font-family: Inter, system-ui, sans-serif; }
+    #board { display:grid; grid-template-columns:repeat(8,1fr); width:min(92vw,420px); aspect-ratio:1; }
+    .square { display:flex; align-items:center; justify-content:center; position:relative; font-size:clamp(26px,9vw,48px); cursor:pointer; user-select:none; }
+    .light { background:#f0d9b5; } .dark { background:#b58863; }
+    .selected { box-shadow:inset 0 0 0 4px #22c55e; }
+    .target::after { content:""; width:25%; height:25%; border-radius:999px; background:#22c55eaa; position:absolute; }
+    .capture::after { content:""; width:75%; height:75%; border-radius:999px; border:4px solid #ef4444aa; position:absolute; }
+    .piece { position:relative; z-index:1; line-height:1; text-shadow:0 1px 1px #0003; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#F7FAF8] text-slate-800 flex justify-center">
+  <main class="w-full max-w-md px-5 py-5">
+    <div class="flex items-center justify-between mb-4">
+      <div><p class="text-xs text-slate-400">Easter egg</p><h1 class="text-2xl font-extrabold">Xadrez ♟️</h1></div>
+      <button onclick="history.back()" class="rounded-xl bg-white border border-slate-200 px-3 py-2 text-sm font-semibold">‹ Voltar</button>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 p-3 shadow-sm">
+      <p id="status" class="text-center text-sm font-semibold mb-3">Brancas jogam</p>
+      <div id="board" class="mx-auto rounded-lg overflow-hidden shadow"></div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="newGame()" class="flex-1 rounded-xl bg-green-600 text-white py-3 font-semibold">Novo jogo</button>
+        <button onclick="flipBoard()" class="rounded-xl bg-slate-100 text-slate-600 px-4 py-3 font-semibold">Virar</button>
+      </div>
+      <p class="text-[11px] text-slate-400 text-center mt-3">Jogo local para dois jogadores. Toque numa peça e depois no destino.</p>
+    </div>
+  </main>
+<script>
+const glyph={wk:'♔',wq:'♕',wr:'♖',wb:'♗',wn:'♘',wp:'♙',bk:'♚',bq:'♛',br:'♜',bb:'♝',bn:'♞',bp:'♟'};
+let board, turn, selected, flipped=false, gameOver=false;
+const inside=(r,c)=>r>=0&&r<8&&c>=0&&c<8;
+const color=p=>p?.[0];
+function newGame(){
+  board=[['br','bn','bb','bq','bk','bb','bn','br'],Array(8).fill('bp'),...Array.from({length:4},()=>Array(8).fill(null)),Array(8).fill('wp'),['wr','wn','wb','wq','wk','wb','wn','wr']];
+  turn='w'; selected=null; gameOver=false; render();
+}
+function pseudo(r,c){
+ const p=board[r][c]; if(!p)return[]; const out=[], t=p[1], dr=p[0]==='w'?-1:1;
+ const add=(rr,cc)=>{if(!inside(rr,cc))return false; if(!board[rr][cc]){out.push([rr,cc]);return true} if(color(board[rr][cc])!==color(p))out.push([rr,cc]);return false};
+ if(t==='p'){ if(inside(r+dr,c)&&!board[r+dr][c]){out.push([r+dr,c]);if((p[0]==='w'&&r===6||p[0]==='b'&&r===1)&&!board[r+2*dr][c])out.push([r+2*dr,c])} for(const dc of[-1,1])if(inside(r+dr,c+dc)&&board[r+dr][c+dc]&&color(board[r+dr][c+dc])!==color(p))out.push([r+dr,c+dc]); }
+ if(t==='n')for(const [a,b] of [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]])add(r+a,c+b);
+ if(t==='k')for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)if(a||b)add(r+a,c+b);
+ if('brq'.includes(t))for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){let rr=r+a,cc=c+b;while(add(rr,cc)){rr+=a;cc+=b}}
+ if('bq'.includes(t))for(const [a,b] of [[1,1],[1,-1],[-1,1],[-1,-1]]){let rr=r+a,cc=c+b;while(add(rr,cc)){rr+=a;cc+=b}}
+ return out;
+}
+function legal(r,c){return pseudo(r,c).filter(([rr,cc])=>board[rr][cc]?.[1]!=='k');}
+function move(r,c){
+ if(gameOver)return;
+ if(selected){const possible=legal(...selected).some(([rr,cc])=>rr===r&&cc===c); if(possible){const p=board[selected[0]][selected[1]]; board[r][c]=p; board[selected[0]][selected[1]]=null; if(p[1]==='p'&&(r===0||r===7))board[r][c]=p[0]+'q'; turn=turn==='w'?'b':'w'; selected=null; const moves=allMoves(turn); if(!moves.length){gameOver=true; status.textContent=(turn==='w'?'Pretas':'Brancas')+' venceram!';} } else selected=null; } else if(board[r][c]?.[0]===turn)selected=[r,c]; render();
+}
+function allMoves(col){let n=0;for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(board[r][c]?.[0]===col)n+=legal(r,c).length;return n}
+function render(){const el=document.getElementById('board');el.innerHTML=''; for(let vr=0;vr<8;vr++)for(let vc=0;vc<8;vc++){const r=flipped?7-vr:vr,c=flipped?7-vc:vc,s=document.createElement('button');s.className='square '+((r+c)%2?'dark':'light');if(selected?.[0]===r&&selected?.[1]===c)s.classList.add('selected');if(selected&&legal(...selected).some(x=>x[0]===r&&x[1]===c))s.classList.add(board[r][c]?'capture':'target');s.onclick=()=>move(r,c);if(board[r][c]){const q=document.createElement('span');q.className='piece';q.textContent=glyph[board[r][c]];s.append(q)}el.append(s)} if(!gameOver)document.getElementById('status').textContent=(turn==='w'?'Brancas':'Pretas')+' jogam';}
+function flipBoard(){flipped=!flipped;render()}newGame();
+</script>
+</body></html>
